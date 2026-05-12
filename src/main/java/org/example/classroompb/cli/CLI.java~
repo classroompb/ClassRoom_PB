@@ -1,0 +1,4 @@
+package org.example.classroompb.cli;
+
+public interface CLI {
+}

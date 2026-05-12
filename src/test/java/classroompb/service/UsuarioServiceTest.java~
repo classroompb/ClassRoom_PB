@@ -1,0 +1,196 @@
+package classroompb.service;
+
+import org.example.classroompb.model.*;
+import org.example.classroompb.repository.UsuarioRepository;
+import org.example.classroompb.service.UsuarioService;
+import org.junit.jupiter.api.*;
+
+import java.io.File;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+class UsuarioServiceTest {
+
+    private UsuarioService service;
+
+    // Repositório em memória para testes (não salva em disco)
+    static class RepositorioFake extends UsuarioRepository {
+        private final java.util.List<Usuario> lista = new java.util.ArrayList<>();
+
+        @Override
+        public java.util.List<Usuario> carregarTodos() { return lista; }
+
+        @Override
+        public void salvarTodos(java.util.List<Usuario> usuarios) {
+            lista.clear();
+            lista.addAll(usuarios);
+        }
+    }
+
+    @BeforeEach
+    void setUp() {
+        service = new UsuarioService(new RepositorioFake());
+    }
+
+    // ==================== RF01 - Cadastro ====================
+
+    @Test
+    @Order(1)
+    void deveCadastrarAluno() {
+        Usuario u = service.cadastrar("ALUNO", "João", "2026001", "joao@email.com", "1234");
+        assertNotNull(u);
+        assertInstanceOf(Aluno.class, u);
+        assertEquals(TipoUsuario.ALUNO, u.getTipo());
+        assertEquals("João", u.getNome());
+    }
+
+    @Test
+    @Order(2)
+    void deveCadastrarProfessor() {
+        Usuario u = service.cadastrar("PROFESSOR", "Maria", "P001", "maria@email.com", "1234");
+        assertInstanceOf(Professor.class, u);
+        assertEquals(TipoUsuario.PROFESSOR, u.getTipo());
+    }
+
+    @Test
+    @Order(3)
+    void deveCadastrarCoordenador() {
+        Usuario u = service.cadastrar("COORDENADOR", "Carlos", "C001", "carlos@email.com", "1234");
+        assertInstanceOf(Coordenador.class, u);
+        assertEquals(TipoUsuario.COORDENADOR, u.getTipo());
+    }
+
+    @Test
+    @Order(4)
+    void deveCadastrarAdministrador() {
+        Usuario u = service.cadastrar("ADMINISTRADOR", "Ana", "A001", "ana@email.com", "1234");
+        assertInstanceOf(Administrador.class, u);
+        assertEquals(TipoUsuario.ADMINISTRADOR, u.getTipo());
+    }
+
+    @Test
+    @Order(5)
+    void deveLancarExcecaoParaTipoInvalido() {
+        assertThrows(IllegalArgumentException.class, () ->
+                service.cadastrar("DIRETOR", "X", "X001", "x@email.com", "1234"));
+    }
+
+    @Test
+    @Order(6)
+    void deveLancarExcecaoParaNomeVazio() {
+        assertThrows(IllegalArgumentException.class, () ->
+                service.cadastrar("ALUNO", "", "2026002", "a@email.com", "1234"));
+    }
+
+    @Test
+    @Order(7)
+    void deveLancarExcecaoParaEmailInvalido() {
+        assertThrows(IllegalArgumentException.class, () ->
+                service.cadastrar("ALUNO", "Nome", "2026003", "emailsemarroba", "1234"));
+    }
+
+    @Test
+    @Order(8)
+    void deveLancarExcecaoParaSenhaCurta() {
+        assertThrows(IllegalArgumentException.class, () ->
+                service.cadastrar("ALUNO", "Nome", "2026004", "b@email.com", "123"));
+    }
+
+
+    // ==================== RF02 - Login ====================
+
+    @Test
+    @Order(11)
+    void deveRealizarLoginComMatricula() {
+        service.cadastrar("ALUNO", "João", "2026001", "joao@email.com", "1234");
+        Usuario logado = service.login("2026001", "1234");
+        assertNotNull(logado);
+        assertEquals("João", logado.getNome());
+    }
+
+    @Test
+    @Order(12)
+    void deveRealizarLoginComEmail() {
+        service.cadastrar("ALUNO", "João", "2026001", "joao@email.com", "1234");
+        Usuario logado = service.login("joao@email.com", "1234");
+        assertNotNull(logado);
+        assertEquals("2026001", logado.getMatricula());
+    }
+
+    @Test
+    @Order(13)
+    void deveRejeitarSenhaErrada() {
+        service.cadastrar("ALUNO", "João", "2026001", "joao@email.com", "1234");
+        assertThrows(IllegalArgumentException.class, () ->
+                service.login("2026001", "senhaerrada"));
+    }
+
+    @Test
+    @Order(14)
+    void deveRejeitarUsuarioInexistente() {
+        assertThrows(IllegalArgumentException.class, () ->
+                service.login("naoexiste", "1234"));
+    }
+
+    @Test
+    @Order(15)
+    void deveRejeitarLoginComIdentificadorVazio() {
+        assertThrows(IllegalArgumentException.class, () ->
+                service.login("", "1234"));
+    }
+
+    @Test
+    @Order(16)
+    void deveRejeitarLoginComSenhaVazia() {
+        service.cadastrar("ALUNO", "João", "2026001", "joao@email.com", "1234");
+        assertThrows(IllegalArgumentException.class, () ->
+                service.login("2026001", ""));
+    }
+
+    // ==================== RF03 - Menu por perfil ====================
+
+    @Test
+    @Order(17)
+    void deveRetornarMenuAluno() {
+        String menu = service.getMenuPorPerfil(TipoUsuario.ALUNO);
+        assertTrue(menu.contains("MENU ALUNO"));
+        assertTrue(menu.contains("matrícula"));
+    }
+
+    @Test
+    @Order(18)
+    void deveRetornarMenuProfessor() {
+        String menu = service.getMenuPorPerfil(TipoUsuario.PROFESSOR);
+        assertTrue(menu.contains("MENU PROFESSOR"));
+        assertTrue(menu.contains("frequência"));
+    }
+
+    @Test
+    @Order(19)
+    void deveRetornarMenuCoordenador() {
+        String menu = service.getMenuPorPerfil(TipoUsuario.COORDENADOR);
+        assertTrue(menu.contains("MENU COORDENADOR"));
+        assertTrue(menu.contains("disciplinas"));
+    }
+
+    @Test
+    @Order(20)
+    void deveRetornarMenuAdministrador() {
+        String menu = service.getMenuPorPerfil(TipoUsuario.ADMINISTRADOR);
+        assertTrue(menu.contains("MENU ADMINISTRADOR"));
+        assertTrue(menu.contains("usuários"));
+    }
+
+    // ==================== Persistência ====================
+
+    @Test
+    @Order(21)
+    void devePersistirUsuarioAposCadastro() {
+        service.cadastrar("ALUNO", "João", "2026001", "joao@email.com", "1234");
+        List<Usuario> lista = service.listarTodos();
+        assertEquals(1, lista.size());
+        assertEquals("João", lista.get(0).getNome());
+    }
+}

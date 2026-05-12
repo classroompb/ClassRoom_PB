@@ -1,0 +1,4 @@
+package org.example.classroompb.service;
+
+public class UsuarioService {
+}
