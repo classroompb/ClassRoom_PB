@@ -122,6 +122,15 @@ public class UsuarioService {
                 .findFirst().orElse(null);
     }
 
+    // RF04 - Helpers para verificar duplicidade sem lançar exceção
+    public boolean matriculaJaExiste(String matricula) {
+        return matricula != null && buscarPorMatricula(matricula) != null;
+    }
+
+    public boolean emailJaExiste(String email) {
+        return email != null && buscarPorEmail(email) != null;
+    }
+
     private void validarCampos(String nome, String matricula, String email, String senha) {
         if (nome == null || nome.isBlank())
             throw new IllegalArgumentException("Nome não pode ser vazio.");

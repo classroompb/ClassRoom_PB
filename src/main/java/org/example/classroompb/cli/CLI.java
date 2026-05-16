@@ -1,7 +1,11 @@
 package org.example.classroompb.cli;
 
+import org.example.classroompb.model.Curso;
+import org.example.classroompb.model.TipoUsuario;
 import org.example.classroompb.model.Usuario;
+import org.example.classroompb.repository.CursoRepository;
 import org.example.classroompb.repository.UsuarioRepository;
+import org.example.classroompb.service.CursoService;
 import org.example.classroompb.service.UsuarioService;
 
 import java.util.Scanner;
@@ -9,11 +13,13 @@ import java.util.Scanner;
 public class CLI {
 
     private final UsuarioService usuarioService;
+    private final CursoService cursoService;
     private final Scanner scanner;
     private Usuario usuarioLogado;
 
     public CLI() {
         this.usuarioService = new UsuarioService(new UsuarioRepository());
+        this.cursoService = new CursoService(new CursoRepository());
         this.scanner = new Scanner(System.in);
     }
 
@@ -94,8 +100,29 @@ public class CLI {
         if (opcao.equals("0")) {
             System.out.println("Logout realizado.");
             usuarioLogado = null;
-        } else {
-            System.out.println("Funcionalidade em desenvolvimento.");
+            return;
+        }
+
+        // RF05 - Administrador cadastra cursos (opção 2 do menu admin)
+        if (usuarioLogado.getTipo() == TipoUsuario.ADMINISTRADOR && opcao.equals("2")) {
+            cadastrarCurso();
+            return;
+        }
+
+        System.out.println("Funcionalidade em desenvolvimento.");
+    }
+
+    private void cadastrarCurso() {
+        System.out.print("Código do curso: ");
+        String codigo = scanner.nextLine().trim();
+        System.out.print("Nome do curso: ");
+        String nome = scanner.nextLine().trim();
+
+        try {
+            Curso c = cursoService.cadastrar(codigo, nome);
+            System.out.println("Curso cadastrado com sucesso: " + c);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Erro: " + e.getMessage());
         }
     }
 
