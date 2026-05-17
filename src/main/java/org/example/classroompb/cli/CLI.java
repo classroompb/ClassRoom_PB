@@ -1,12 +1,15 @@
 package org.example.classroompb.cli;
 
 import org.example.classroompb.model.Curso;
+import org.example.classroompb.model.Disciplina;
 import org.example.classroompb.model.TipoUsuario;
 import org.example.classroompb.model.Usuario;
 import org.example.classroompb.repository.CursoRepository;
 import org.example.classroompb.repository.UsuarioRepository;
+import org.example.classroompb.repository.DisciplinaRepository;
 import org.example.classroompb.service.CursoService;
 import org.example.classroompb.service.UsuarioService;
+import org.example.classroompb.service.DisciplinaService;
 
 import java.util.Scanner;
 
@@ -14,12 +17,14 @@ public class CLI {
 
     private final UsuarioService usuarioService;
     private final CursoService cursoService;
+    private final DisciplinaService disciplinaService;
     private final Scanner scanner;
     private Usuario usuarioLogado;
 
     public CLI() {
         this.usuarioService = new UsuarioService(new UsuarioRepository());
         this.cursoService = new CursoService(new CursoRepository());
+        this.disciplinaService = new DisciplinaService(new DisciplinaRepository());
         this.scanner = new Scanner(System.in);
     }
 
@@ -108,6 +113,12 @@ public class CLI {
             cadastrarCurso();
             return;
         }
+        
+        // RF06 - Coordenador cadastra disciplinas
+        if (usuarioLogado.getTipo() == TipoUsuario.COORDENADOR && opcao.equals("1")) {
+            cadastrarDisciplina();
+            return;
+        }
 
         System.out.println("Funcionalidade em desenvolvimento.");
     }
@@ -124,6 +135,27 @@ public class CLI {
         } catch (IllegalArgumentException e) {
             System.out.println("Erro: " + e.getMessage());
         }
+    }
+    
+    private void cadastrarDisciplina() {
+    	 System.out.print("Código da disciplina:  ");
+         String codigo = scanner.nextLine().trim();
+         System.out.print("Nome da disciplina:  ");
+         String nome = scanner.nextLine().trim();
+         System.out.print("Carga horária da disciplina:  ");
+         int cargaHora = Integer.parseInt(scanner.nextLine().trim());
+         System.out.print("Créditos da disciplina:  ");
+         int creditos = Integer.parseInt(scanner.nextLine().trim());
+         System.out.println();
+         try {
+        	 disciplinaService.cadastrar(codigo, nome, cargaHora, creditos);
+        	 System.out.println("Disciplina cadastrada com sucesso.");
+         } catch (IllegalArgumentException e) {
+        	 System.out.println("Erro: " + e.getMessage());
+         }
+         
+         System.out.println();
+         System.out.println();
     }
 
     public static void main(String[] args) {
