@@ -2,38 +2,47 @@ package org.example.classroompb.repository;
 
 import org.example.classroompb.model.Disciplina;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+
 import java.io.*;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
 public class DisciplinaRepository {
 	
-	private static final String ARQUIVO = "dados/disciplina.dat";
+	private static final String ARQUIVO = "dados/disciplina.json";
+	private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 	
 	public DisciplinaRepository() {
 		new File("dados").mkdirs();
 	}
 	
-	@SuppressWarnings("unchecked")
 	public List<Disciplina> carregarTodos() {
 		File arquivo = new File(ARQUIVO);
 		
 		if(!arquivo.exists()) return new ArrayList<>();
 		
-		try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(arquivo))) {
-            return (List<Disciplina>) ois.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            System.err.println("Erro ao carregar - " + e.getMessage());
+		try (Reader reader = new FileReader(arquivo)) {
+			
+			Type tipo = new TypeToken<List<Disciplina>>() {}.getType();
+			List<Disciplina> lista = gson.fromJson(reader, tipo);
+			return lista != null ? lista : new ArrayList<>();
+			
+        } catch (IOException e) {
+            System.err.println("Erro ao carregar disciplinas: " + e.getMessage());
             return new ArrayList<>();
         }
     }
 	
 	
 	public void salvarTodos(List<Disciplina> disciplinas) {
-		try(ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(ARQUIVO))) {
-			oos.writeObject(disciplinas);
+		try(Writer writer= new FileWriter(ARQUIVO)) {
+			gson.toJson(disciplinas, writer);
 		} catch (IOException e) {
-			System.err.println("Erro ao salvar - " + e.getMessage());
+			System.err.println("Erro ao salvar disciplinas: " + e.getMessage());
 		}
 	}
 
