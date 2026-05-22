@@ -11,7 +11,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class RF06TesteDisciplina {
+class RF06DisciplinaTest {
 
     private DisciplinaService service;
 

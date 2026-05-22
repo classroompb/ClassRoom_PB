@@ -10,7 +10,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class RF01TesteCadastro {
+class RF01CadastroTest {
 
     private UsuarioService service;
 
