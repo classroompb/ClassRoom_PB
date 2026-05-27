@@ -88,10 +88,13 @@ public class UsuarioService {
                     === MENU COORDENADOR ===
                     1. Cadastrar disciplinas
                     2. Ofertar turmas
-                    3. Gerenciar vagas e horários
-                    4. Aprovar/cancelar matrículas
-                    5. Visualizar listas de espera
-                    6. Gerar relatórios acadêmicos
+                    3. Cadastrar períodos letivos
+                    4. Ativar período letivo
+                    5. Encerrar período letivo
+                    6. Gerenciar vagas e horários
+                    7. Aprovar/cancelar matrículas
+                    8. Visualizar listas de espera
+                    9. Gerar relatórios acadêmicos
                     0. Sair
                     """;
             case ADMINISTRADOR -> """

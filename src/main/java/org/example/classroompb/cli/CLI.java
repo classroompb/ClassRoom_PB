@@ -2,14 +2,17 @@ package org.example.classroompb.cli;
 
 import org.example.classroompb.model.Curso;
 import org.example.classroompb.model.Disciplina;
+import org.example.classroompb.model.PeriodoLetivo;
 import org.example.classroompb.model.TipoUsuario;
 import org.example.classroompb.model.Usuario;
 import org.example.classroompb.repository.CursoRepository;
 import org.example.classroompb.repository.UsuarioRepository;
 import org.example.classroompb.repository.DisciplinaRepository;
+import org.example.classroompb.repository.PeriodoLetivoRepository;
 import org.example.classroompb.service.CursoService;
 import org.example.classroompb.service.UsuarioService;
 import org.example.classroompb.service.DisciplinaService;
+import org.example.classroompb.service.PeriodoLetivoService;
 
 import java.util.Scanner;
 
@@ -18,6 +21,7 @@ public class CLI {
     private final UsuarioService usuarioService;
     private final CursoService cursoService;
     private final DisciplinaService disciplinaService;
+    private final PeriodoLetivoService periodoLetivoService;
     private final Scanner scanner;
     private Usuario usuarioLogado;
 
@@ -25,6 +29,7 @@ public class CLI {
         this.usuarioService = new UsuarioService(new UsuarioRepository());
         this.cursoService = new CursoService(new CursoRepository());
         this.disciplinaService = new DisciplinaService(new DisciplinaRepository());
+        this.periodoLetivoService = new PeriodoLetivoService(new PeriodoLetivoRepository());
         this.scanner = new Scanner(System.in);
     }
 
@@ -120,6 +125,24 @@ public class CLI {
             return;
         }
 
+        // RF08 - Coordenador cadastra periodos letivos
+        if (usuarioLogado.getTipo() == TipoUsuario.COORDENADOR && opcao.equals("3")) {
+            cadastrarPeriodoLetivo();
+            return;
+        }
+
+        // RF09 - Coordenador ativa periodos letivos
+        if (usuarioLogado.getTipo() == TipoUsuario.COORDENADOR && opcao.equals("4")) {
+            ativarPeriodoLetivo();
+            return;
+        }
+
+        // RF09 - Coordenador encerra periodos letivos
+        if (usuarioLogado.getTipo() == TipoUsuario.COORDENADOR && opcao.equals("5")) {
+            encerrarPeriodoLetivo();
+            return;
+        }
+
         System.out.println("Funcionalidade em desenvolvimento.");
     }
 
@@ -156,6 +179,42 @@ public class CLI {
          
          System.out.println();
          System.out.println();
+    }
+
+    private void cadastrarPeriodoLetivo() {
+        System.out.print("Identificador do período letivo (ex: 2026.1): ");
+        String identificador = scanner.nextLine().trim();
+
+        try {
+            PeriodoLetivo periodo = periodoLetivoService.cadastrar(identificador);
+            System.out.println("Período letivo cadastrado com sucesso: " + periodo);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Erro: " + e.getMessage());
+        }
+    }
+
+    private void ativarPeriodoLetivo() {
+        System.out.print("Identificador do período letivo para ativar: ");
+        String identificador = scanner.nextLine().trim();
+
+        try {
+            PeriodoLetivo periodo = periodoLetivoService.ativar(identificador);
+            System.out.println("Período letivo ativado com sucesso: " + periodo);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Erro: " + e.getMessage());
+        }
+    }
+
+    private void encerrarPeriodoLetivo() {
+        System.out.print("Identificador do período letivo para encerrar: ");
+        String identificador = scanner.nextLine().trim();
+
+        try {
+            PeriodoLetivo periodo = periodoLetivoService.encerrar(identificador);
+            System.out.println("Período letivo encerrado com sucesso: " + periodo);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Erro: " + e.getMessage());
+        }
     }
 
     public static void main(String[] args) {
