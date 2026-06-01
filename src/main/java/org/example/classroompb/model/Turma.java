@@ -44,7 +44,23 @@ public class Turma implements Serializable {
     public List<String> getAlunoMatriculados() { return new ArrayList<>(alunoMatriculados); }
     public int getTotalMatriculados() { return alunoMatriculados.size(); }
 
-    // Métodos de negócio
+    public void setProfessor(Professor professor) {
+		this.professor = professor;
+	}
+
+	public void setLimiteVagas(int limiteVagas) {
+		this.limiteVagas = limiteVagas;
+	}
+
+	public void setHorario(String horario) {
+		this.horario = horario;
+	}
+
+	public void setSala(String sala) {
+		this.sala = sala;
+	}
+
+	// Métodos de negócio
     public boolean temVagasDisponiveis() {
         return vagasDisponiveis > 0;
     }
