@@ -1,21 +1,8 @@
 package org.example.classroompb.cli;
 
-import org.example.classroompb.model.Curso;
-import org.example.classroompb.model.Disciplina;
-import org.example.classroompb.model.PeriodoLetivo;
-import org.example.classroompb.model.TipoUsuario;
-import org.example.classroompb.model.Turma;
-import org.example.classroompb.model.Usuario;
-import org.example.classroompb.repository.CursoRepository;
-import org.example.classroompb.repository.UsuarioRepository;
-import org.example.classroompb.repository.DisciplinaRepository;
-import org.example.classroompb.repository.PeriodoLetivoRepository;
-import org.example.classroompb.repository.TurmaRepository;
-import org.example.classroompb.service.CursoService;
-import org.example.classroompb.service.UsuarioService;
-import org.example.classroompb.service.DisciplinaService;
-import org.example.classroompb.service.PeriodoLetivoService;
-import org.example.classroompb.service.TurmaService;
+import org.example.classroompb.model.*;
+import org.example.classroompb.repository.*;
+import org.example.classroompb.service.*;
 
 import java.util.Scanner;
 
@@ -107,7 +94,6 @@ public class CLI {
     }
 
     private void menuUsuario() {
-        // RF03 - exibe menu conforme perfil
         System.out.println(usuarioService.getMenuPorPerfil(usuarioLogado.getTipo()));
         System.out.print("Escolha: ");
         String opcao = scanner.nextLine().trim();
@@ -118,51 +104,22 @@ public class CLI {
             return;
         }
 
-        // RF05 - Administrador cadastra cursos (opção 2 do menu admin)
         if (usuarioLogado.getTipo() == TipoUsuario.ADMINISTRADOR && opcao.equals("2")) {
             cadastrarCurso();
             return;
         }
-        
-        // RF06 - Coordenador cadastra disciplinas
-        if (usuarioLogado.getTipo() == TipoUsuario.COORDENADOR && opcao.equals("1")) {
-            cadastrarDisciplina();
-            return;
-        }
 
-        // RF10/RF11 - Coordenador oferta turmas
-        if (usuarioLogado.getTipo() == TipoUsuario.COORDENADOR && opcao.equals("2")) {
-            ofertarTurma();
-            return;
-        }
-
-        // RF08 - Coordenador cadastra periodos letivos
-        if (usuarioLogado.getTipo() == TipoUsuario.COORDENADOR && opcao.equals("3")) {
-            cadastrarPeriodoLetivo();
-            return;
-        }
-
-        // RF09 - Coordenador ativa periodos letivos
-        if (usuarioLogado.getTipo() == TipoUsuario.COORDENADOR && opcao.equals("4")) {
-            ativarPeriodoLetivo();
-            return;
-        }
-
-        // RF09 - Coordenador encerra periodos letivos
-        if (usuarioLogado.getTipo() == TipoUsuario.COORDENADOR && opcao.equals("5")) {
-            encerrarPeriodoLetivo();
-            return;
-        }
-
-        // RF14 - Coordenador altera ou cancela turmas
-        if (usuarioLogado.getTipo() == TipoUsuario.COORDENADOR && opcao.equals("6")) {
-            gerenciarTurma();
-            return;
-        }
-
-        // RF07 - Coordenador adiciona pre-requisito em disciplina
-        if (usuarioLogado.getTipo() == TipoUsuario.COORDENADOR && opcao.equals("10")) {
-            adicionarPreRequisito();
+        if (usuarioLogado.getTipo() == TipoUsuario.COORDENADOR) {
+            switch (opcao) {
+                case "1" -> cadastrarDisciplina();
+                case "2" -> ofertarTurma();
+                case "3" -> cadastrarPeriodoLetivo();
+                case "4" -> ativarPeriodoLetivo();
+                case "5" -> encerrarPeriodoLetivo();
+                case "6" -> alterarTurma();
+                case "7" -> cancelarTurma();
+                default  -> System.out.println("Funcionalidade em desenvolvimento.");
+            }
             return;
         }
 
@@ -182,37 +139,20 @@ public class CLI {
             System.out.println("Erro: " + e.getMessage());
         }
     }
-    
-    private void cadastrarDisciplina() {
-    	 System.out.print("Código da disciplina:  ");
-         String codigo = scanner.nextLine().trim();
-         System.out.print("Nome da disciplina:  ");
-         String nome = scanner.nextLine().trim();
-         System.out.print("Carga horária da disciplina:  ");
-         int cargaHora = Integer.parseInt(scanner.nextLine().trim());
-         System.out.print("Créditos da disciplina:  ");
-         int creditos = Integer.parseInt(scanner.nextLine().trim());
-         System.out.println();
-         try {
-        	 disciplinaService.cadastrar(codigo, nome, cargaHora, creditos);
-        	 System.out.println("Disciplina cadastrada com sucesso.");
-         } catch (IllegalArgumentException e) {
-        	 System.out.println("Erro: " + e.getMessage());
-         }
-         
-         System.out.println();
-         System.out.println();
-    }
 
-    private void adicionarPreRequisito() {
+    private void cadastrarDisciplina() {
         System.out.print("Código da disciplina: ");
-        String codigoDisciplina = scanner.nextLine().trim();
-        System.out.print("Código da disciplina pré-requisito: ");
-        String codigoPreRequisito = scanner.nextLine().trim();
+        String codigo = scanner.nextLine().trim();
+        System.out.print("Nome da disciplina: ");
+        String nome = scanner.nextLine().trim();
+        System.out.print("Carga horária: ");
+        int cargaHora = Integer.parseInt(scanner.nextLine().trim());
+        System.out.print("Créditos: ");
+        int creditos = Integer.parseInt(scanner.nextLine().trim());
 
         try {
-            disciplinaService.adicionarPreRequisito(codigoDisciplina, codigoPreRequisito);
-            System.out.println("Pré-requisito adicionado com sucesso.");
+            disciplinaService.cadastrar(codigo, nome, cargaHora, creditos);
+            System.out.println("Disciplina cadastrada com sucesso.");
         } catch (IllegalArgumentException e) {
             System.out.println("Erro: " + e.getMessage());
         }
@@ -223,34 +163,63 @@ public class CLI {
         String codigoDisciplina = scanner.nextLine().trim();
         System.out.print("Matrícula do professor: ");
         String matriculaProfessor = scanner.nextLine().trim();
-        System.out.print("Identificador do período letivo (ex: 2026.1): ");
+        System.out.print("Período letivo (ex: 2026.1): ");
         String identificadorPeriodo = scanner.nextLine().trim();
         System.out.print("Limite de vagas: ");
-        String limiteTexto = scanner.nextLine().trim();
+        int vagas = Integer.parseInt(scanner.nextLine().trim());
         System.out.print("Horário (ex: 08:00-10:00): ");
         String horario = scanner.nextLine().trim();
         System.out.print("Sala: ");
         String sala = scanner.nextLine().trim();
 
         try {
-            int limiteVagas = Integer.parseInt(limiteTexto);
             PeriodoLetivo periodo = periodoLetivoService.buscarPorIdentificador(identificadorPeriodo);
             if (periodo == null) {
-                throw new IllegalArgumentException("Período letivo não encontrado: " + identificadorPeriodo);
+                System.out.println("Erro: Período letivo não encontrado.");
+                return;
             }
-
-            Turma turma = turmaService.ofertarTurma(
-                    codigoDisciplina,
-                    matriculaProfessor,
-                    periodo,
-                    limiteVagas,
-                    horario,
-                    sala
-            );
+            Turma turma = turmaService.ofertarTurma(codigoDisciplina, matriculaProfessor, periodo, vagas, horario, sala);
             System.out.println("Turma ofertada com sucesso: " + turma);
-        } catch (NumberFormatException e) {
-            System.out.println("Erro: limite de vagas deve ser um número inteiro.");
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
+            System.out.println("Erro: " + e.getMessage());
+        }
+    }
+
+    private void alterarTurma() {
+        System.out.print("Código da turma: ");
+        String codigoTurma = scanner.nextLine().trim();
+        System.out.print("Nova matrícula do professor (Enter para manter): ");
+        String novoProfessor = scanner.nextLine().trim();
+        System.out.print("Novo limite de vagas (0 para manter): ");
+        String vagasStr = scanner.nextLine().trim();
+        System.out.print("Novo horário (Enter para manter): ");
+        String novoHorario = scanner.nextLine().trim();
+        System.out.print("Nova sala (Enter para manter): ");
+        String novaSala = scanner.nextLine().trim();
+
+        try {
+        	Integer novasVagas = (vagasStr.isEmpty() || vagasStr.equals("0")) ? null : Integer.parseInt(vagasStr);
+            Turma turma = turmaService.alterarTurma(
+                codigoTurma,
+                novoProfessor.isEmpty() ? null : novoProfessor,
+                novasVagas,
+                novoHorario.isEmpty() ? null : novoHorario,
+                novaSala.isEmpty() ? null : novaSala
+            );
+            System.out.println("Turma alterada com sucesso: " + turma);
+        } catch (Exception e) {
+            System.out.println("Erro: " + e.getMessage());
+        }
+    }
+
+    private void cancelarTurma() {
+        System.out.print("Código da turma: ");
+        String codigoTurma = scanner.nextLine().trim();
+
+        try {
+            turmaService.cancelarTurma(codigoTurma);
+            System.out.println("Turma cancelada com sucesso.");
+        } catch (Exception e) {
             System.out.println("Erro: " + e.getMessage());
         }
     }
@@ -287,62 +256,6 @@ public class CLI {
             PeriodoLetivo periodo = periodoLetivoService.encerrar(identificador);
             System.out.println("Período letivo encerrado com sucesso: " + periodo);
         } catch (IllegalArgumentException e) {
-            System.out.println("Erro: " + e.getMessage());
-        }
-    }
-
-    private void gerenciarTurma() {
-        System.out.println("\n1. Alterar turma");
-        System.out.println("2. Cancelar turma");
-        System.out.println("0. Voltar");
-        System.out.print("Escolha: ");
-        String opcao = scanner.nextLine().trim();
-
-        switch (opcao) {
-            case "1" -> alterarTurma();
-            case "2" -> cancelarTurma();
-            case "0" -> System.out.println("Voltando ao menu.");
-            default -> System.out.println("Opção inválida.");
-        }
-    }
-
-    private void alterarTurma() {
-        System.out.print("Código da turma: ");
-        String codigoTurma = scanner.nextLine().trim();
-        System.out.print("Nova matrícula do professor (deixe vazio para manter): ");
-        String novaMatriculaProfessor = scanner.nextLine().trim();
-        System.out.print("Novo limite de vagas (deixe vazio para manter): ");
-        String limiteTexto = scanner.nextLine().trim();
-        System.out.print("Novo horário (ex: 08:00-10:00, deixe vazio para manter): ");
-        String novoHorario = scanner.nextLine().trim();
-        System.out.print("Nova sala (deixe vazio para manter): ");
-        String novaSala = scanner.nextLine().trim();
-
-        try {
-            Integer novoLimiteVagas = limiteTexto.isBlank() ? null : Integer.parseInt(limiteTexto);
-            Turma turma = turmaService.alterarTurma(
-                    codigoTurma,
-                    novaMatriculaProfessor.isBlank() ? null : novaMatriculaProfessor,
-                    novoLimiteVagas,
-                    novoHorario.isBlank() ? null : novoHorario,
-                    novaSala.isBlank() ? null : novaSala
-            );
-            System.out.println("Turma alterada com sucesso: " + turma);
-        } catch (NumberFormatException e) {
-            System.out.println("Erro: limite de vagas deve ser um número inteiro.");
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            System.out.println("Erro: " + e.getMessage());
-        }
-    }
-
-    private void cancelarTurma() {
-        System.out.print("Código da turma: ");
-        String codigoTurma = scanner.nextLine().trim();
-
-        try {
-            turmaService.cancelarTurma(codigoTurma);
-            System.out.println("Turma cancelada com sucesso.");
-        } catch (IllegalArgumentException | IllegalStateException e) {
             System.out.println("Erro: " + e.getMessage());
         }
     }
