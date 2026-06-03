@@ -269,6 +269,52 @@ public class TurmaService {
 		return new ArrayList<>(turmas);
 	}
 
+	/**
+	 * RF15: O aluno deve poder consultar disciplinas/turmas disponiveis.
+	 */
+	public List<Turma> consultarTurmasDisponiveis() {
+		return turmas.stream()
+				.filter(Turma::temVagasDisponiveis)
+				.collect(Collectors.toList());
+	}
+
+	public List<Turma> consultarTurmasDisponiveisPorPeriodo(String identificadorPeriodo) {
+		if (identificadorPeriodo == null || identificadorPeriodo.isBlank()) {
+			throw new IllegalArgumentException("Periodo letivo deve ser informado.");
+		}
+
+		return turmas.stream()
+				.filter(Turma::temVagasDisponiveis)
+				.filter(t -> t.getPeriodoLetivo().getIdentificador().equalsIgnoreCase(identificadorPeriodo))
+				.collect(Collectors.toList());
+	}
+
+	/**
+	 * RF16: O aluno deve poder solicitar matricula em uma turma.
+	 */
+	public void solicitarMatricula(String codigoTurma, String matriculaAluno) {
+		matricularAluno(codigoTurma, matriculaAluno);
+	}
+
+	/**
+	 * RF17: O sistema deve verificar se ha vagas disponiveis.
+	 */
+	public boolean verificarVagasDisponiveis(String codigoTurma) {
+		Turma turma = buscarPorCodigo(codigoTurma);
+		if (turma == null) {
+			throw new IllegalArgumentException("Turma nao encontrada: " + codigoTurma);
+		}
+		return turma.temVagasDisponiveis();
+	}
+
+	public int consultarQuantidadeVagasDisponiveis(String codigoTurma) {
+		Turma turma = buscarPorCodigo(codigoTurma);
+		if (turma == null) {
+			throw new IllegalArgumentException("Turma nao encontrada: " + codigoTurma);
+		}
+		return turma.getVagasDisponiveis();
+	}
+
 // RF14: O coordenador deve poder alterar uma turma antes do início das aulas
 
 	public Turma alterarTurma(String codigoTurma, String novaMatriculaProfessor, Integer novoLimiteVagas,
