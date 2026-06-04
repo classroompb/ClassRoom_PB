@@ -118,6 +118,18 @@ public class CLI {
             return;
         }
 
+        // RF15 - Aluno consulta disciplinas/turmas disponiveis
+        if (usuarioLogado.getTipo() == TipoUsuario.ALUNO && opcao.equals("1")) {
+            consultarTurmasDisponiveis();
+            return;
+        }
+
+        // RF16/RF17 - Aluno solicita matricula com verificacao de vagas
+        if (usuarioLogado.getTipo() == TipoUsuario.ALUNO && opcao.equals("2")) {
+            solicitarMatricula();
+            return;
+        }
+
         // RF05 - Administrador cadastra cursos (opção 2 do menu admin)
         if (usuarioLogado.getTipo() == TipoUsuario.ADMINISTRADOR && opcao.equals("2")) {
             cadastrarCurso();
@@ -343,6 +355,46 @@ public class CLI {
             turmaService.cancelarTurma(codigoTurma);
             System.out.println("Turma cancelada com sucesso.");
         } catch (IllegalArgumentException | IllegalStateException e) {
+            System.out.println("Erro: " + e.getMessage());
+        }
+    }
+
+    private void consultarTurmasDisponiveis() {
+        System.out.print("Filtrar por periodo letivo? Informe o identificador ou deixe vazio: ");
+        String identificadorPeriodo = scanner.nextLine().trim();
+
+        try {
+            var turmas = identificadorPeriodo.isBlank()
+                    ? turmaService.consultarTurmasDisponiveis()
+                    : turmaService.consultarTurmasDisponiveisPorPeriodo(identificadorPeriodo);
+
+            if (turmas.isEmpty()) {
+                System.out.println("Nenhuma turma disponivel encontrada.");
+                return;
+            }
+
+            System.out.println("\nTurmas disponiveis:");
+            for (Turma turma : turmas) {
+                System.out.println(turma);
+            }
+        } catch (IllegalArgumentException e) {
+            System.out.println("Erro: " + e.getMessage());
+        }
+    }
+
+    private void solicitarMatricula() {
+        System.out.print("Codigo da turma: ");
+        String codigoTurma = scanner.nextLine().trim();
+
+        try {
+            if (!turmaService.verificarVagasDisponiveis(codigoTurma)) {
+                System.out.println("Nao ha vagas disponiveis para esta turma.");
+                return;
+            }
+
+            turmaService.solicitarMatricula(codigoTurma, usuarioLogado.getMatricula());
+            System.out.println("Matricula solicitada com sucesso.");
+        } catch (IllegalArgumentException e) {
             System.out.println("Erro: " + e.getMessage());
         }
     }

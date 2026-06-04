@@ -269,6 +269,7 @@ public class TurmaService {
 		return new ArrayList<>(turmas);
 	}
 
+	// ===== INICIO RF15: Consulta de turmas disponiveis =====
 	/**
 	 * RF15: O aluno deve poder consultar disciplinas/turmas disponiveis.
 	 */
@@ -289,6 +290,7 @@ public class TurmaService {
 				.collect(Collectors.toList());
 	}
 
+	// ===== INICIO RF16: Solicitacao de matricula =====
 	/**
 	 * RF16: O aluno deve poder solicitar matricula em uma turma.
 	 */
@@ -296,6 +298,7 @@ public class TurmaService {
 		matricularAluno(codigoTurma, matriculaAluno);
 	}
 
+	// ===== INICIO RF17: Verificacao de vagas disponiveis =====
 	/**
 	 * RF17: O sistema deve verificar se ha vagas disponiveis.
 	 */

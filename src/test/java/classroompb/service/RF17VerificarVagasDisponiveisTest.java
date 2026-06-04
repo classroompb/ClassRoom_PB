@@ -19,17 +19,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-// ===== INICIO TESTES RF15: Consulta de turmas disponiveis =====
-class RF15ConsultaTurmasDisponiveisTest {
+// ===== INICIO TESTES RF17: Verificacao de vagas disponiveis =====
+class RF17VerificarVagasDisponiveisTest {
 
     private TurmaService turmaService;
     private UsuarioService usuarioService;
     private DisciplinaService disciplinaService;
-    private PeriodoLetivoService periodoLetivoService;
-    private PeriodoLetivo periodo2026_1;
-    private PeriodoLetivo periodo2026_2;
+    private PeriodoLetivo periodo;
 
     static class TurmaRepositorioFake extends TurmaRepository {
         private final List<Turma> lista = new ArrayList<>();
@@ -64,49 +64,50 @@ class RF15ConsultaTurmasDisponiveisTest {
 
         usuarioService = new UsuarioService(usuarioRepo);
         disciplinaService = new DisciplinaService(disciplinaRepo);
-        periodoLetivoService = new PeriodoLetivoService(periodoRepo);
+        var periodoLetivoService = new PeriodoLetivoService(periodoRepo);
         turmaService = new TurmaService(turmaRepo, usuarioService, disciplinaService);
 
         usuarioService.cadastrar("PROFESSOR", "Prof. Ana", "P001", "ana@example.com", "1234");
-        usuarioService.cadastrar("PROFESSOR", "Prof. Bia", "P002", "bia@example.com", "1234");
         usuarioService.cadastrar("ALUNO", "Aluno 1", "A001", "aluno1@example.com", "1234");
 
         disciplinaService.cadastrar("CC101", "Programacao I", 60, 4);
-        disciplinaService.cadastrar("CC102", "Banco de Dados", 60, 4);
 
         periodoLetivoService.cadastrar("2026.1");
-        periodoLetivoService.cadastrar("2026.2");
-        periodo2026_1 = periodoLetivoService.buscarPorIdentificador("2026.1");
-        periodo2026_2 = periodoLetivoService.buscarPorIdentificador("2026.2");
+        periodo = periodoLetivoService.buscarPorIdentificador("2026.1");
     }
 
     @Test
-    void deveConsultarApenasTurmasComVagasDisponiveis() {
-        Turma turmaComVaga = turmaService.ofertarTurma("CC101", "P001", periodo2026_1, 2, "08:00-10:00", "Sala A1");
-        Turma turmaSemVaga = turmaService.ofertarTurma("CC102", "P002", periodo2026_1, 1, "10:00-12:00", "Sala B1");
+    void deveVerificarQuandoHaVagasDisponiveis() {
+        Turma turma = turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
 
-        turmaService.solicitarMatricula(turmaSemVaga.getCodigo(), "A001");
-
-        List<Turma> disponiveis = turmaService.consultarTurmasDisponiveis();
-
-        assertEquals(1, disponiveis.size());
-        assertEquals(turmaComVaga.getCodigo(), disponiveis.get(0).getCodigo());
+        assertTrue(turmaService.verificarVagasDisponiveis(turma.getCodigo()));
+        assertEquals(1, turmaService.consultarQuantidadeVagasDisponiveis(turma.getCodigo()));
     }
 
     @Test
-    void deveConsultarTurmasDisponiveisPorPeriodoLetivo() {
-        Turma turma2026_1 = turmaService.ofertarTurma("CC101", "P001", periodo2026_1, 2, "08:00-10:00", "Sala A1");
-        turmaService.ofertarTurma("CC102", "P002", periodo2026_2, 2, "10:00-12:00", "Sala B1");
+    void deveVerificarQuandoNaoHaVagasDisponiveis() {
+        Turma turma = turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
 
-        List<Turma> disponiveis = turmaService.consultarTurmasDisponiveisPorPeriodo("2026.1");
+        turmaService.solicitarMatricula(turma.getCodigo(), "A001");
 
-        assertEquals(1, disponiveis.size());
-        assertEquals(turma2026_1.getCodigo(), disponiveis.get(0).getCodigo());
+        assertFalse(turmaService.verificarVagasDisponiveis(turma.getCodigo()));
+        assertEquals(0, turmaService.consultarQuantidadeVagasDisponiveis(turma.getCodigo()));
     }
 
     @Test
-    void deveRejeitarConsultaPorPeriodoVazio() {
+    void deveRejeitarVerificacaoDeTurmaInexistente() {
         assertThrows(IllegalArgumentException.class, () ->
-                turmaService.consultarTurmasDisponiveisPorPeriodo(""));
+                turmaService.verificarVagasDisponiveis("TURMA-INEXISTENTE"));
+    }
+
+    @Test
+    void deveRejeitarSolicitacaoQuandoTurmaNaoTemVagas() {
+        usuarioService.cadastrar("ALUNO", "Aluno 2", "A002", "aluno2@example.com", "1234");
+        Turma turma = turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
+
+        turmaService.solicitarMatricula(turma.getCodigo(), "A001");
+
+        assertThrows(IllegalArgumentException.class, () ->
+                turmaService.solicitarMatricula(turma.getCodigo(), "A002"));
     }
 }
