@@ -145,15 +145,16 @@ public class TurmaService {
 	 * RN04 + RN05: Valida pré-requisitos
 	 */
 	private void validarPreRequisitos(String matriculaAluno, Disciplina disciplina) {
-		List<String> preRequisitos = disciplina.getPreRequisitos();
+	    List<String> preRequisitos = disciplina.getPreRequisitos();
 
-		if (preRequisitos == null || preRequisitos.isEmpty()) {
-			return; // Sem pré-requisitos
-		}
+	    if (preRequisitos == null || preRequisitos.isEmpty()) {
+	        return; // Sem pré-requisitos
+	    }
 
-		// TODO: Validar se aluno foi aprovado nos pré-requisitos
-		// Isso requer um histórico acadêmico que será implementado em outro RF
-		// Por enquanto, apenas validamos que pré-requisitos existem
+	    throw new IllegalArgumentException(
+	        "Aluno não cumpriu os pré-requisitos da disciplina: " + 
+	        disciplina.getNome() + ". Pré-requisitos: " + preRequisitos + ". (RN05)"
+	    );
 	}
 
 	/**
