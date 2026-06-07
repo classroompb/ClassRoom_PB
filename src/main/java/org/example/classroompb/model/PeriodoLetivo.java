@@ -1,6 +1,10 @@
 package org.example.classroompb.model;
 
-public class PeriodoLetivo {
+import java.io.Serializable;
+
+public class PeriodoLetivo implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private String identificador;
     private StatusPeriodoLetivo status;

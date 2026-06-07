@@ -95,6 +95,7 @@ public class UsuarioService {
                     7. Aprovar/cancelar matrículas
                     8. Visualizar listas de espera
                     9. Gerar relatórios acadêmicos
+                    10. Adicionar pré-requisito em disciplina
                     0. Sair
                     """;
             case ADMINISTRADOR -> """
