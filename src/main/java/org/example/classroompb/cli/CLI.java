@@ -166,6 +166,30 @@ public class CLI {
             return;
         }
 
+        // RF22 - Coordenador configura datas do período letivo (prazo de cancelamento)
+        if (usuarioLogado.getTipo() == TipoUsuario.COORDENADOR && opcao.equals("7")) {
+            configurarDatasPeriodoLetivo();
+            return;
+        }
+
+        // RF16/RF21 - Aluno solicita matrícula (ou entra em fila se sem vagas)
+        if (usuarioLogado.getTipo() == TipoUsuario.ALUNO && opcao.equals("2")) {
+            solicitarMatriculaEmTurma();
+            return;
+        }
+
+        // RF23 - Aluno acompanha matrícula e lista de espera
+        if (usuarioLogado.getTipo() == TipoUsuario.ALUNO && opcao.equals("3")) {
+            acompanharMatriculaEEspera();
+            return;
+        }
+
+        // RF22/RF23 - Aluno cancela matrícula (com validação de prazo)
+        if (usuarioLogado.getTipo() == TipoUsuario.ALUNO && opcao.equals("6")) {
+            cancelarMatriculaEmTurma();
+            return;
+        }
+
         System.out.println("Funcionalidade em desenvolvimento.");
     }
 
@@ -239,12 +263,15 @@ public class CLI {
                 throw new IllegalArgumentException("Período letivo não encontrado: " + identificadorPeriodo);
             }
 
+            // Normalizar formato do horário (ex: 8:00-10:00 → 08:00-10:00)
+            String horarioNormalizado = normalizarHorario(horario);
+
             Turma turma = turmaService.ofertarTurma(
                     codigoDisciplina,
                     matriculaProfessor,
                     periodo,
                     limiteVagas,
-                    horario,
+                    horarioNormalizado,
                     sala
             );
             System.out.println("Turma ofertada com sucesso: " + turma);
@@ -262,6 +289,13 @@ public class CLI {
         try {
             PeriodoLetivo periodo = periodoLetivoService.cadastrar(identificador);
             System.out.println("Período letivo cadastrado com sucesso: " + periodo);
+            
+            // RF22: Perguntar se deseja configurar datas agora
+            System.out.print("\nDeseja configurar as datas agora? (s/n): ");
+            String opcao = scanner.nextLine().trim().toLowerCase();
+            if (opcao.equals("s")) {
+                configurarDatasPeriodoLetivo();
+            }
         } catch (IllegalArgumentException e) {
             System.out.println("Erro: " + e.getMessage());
         }
@@ -287,6 +321,75 @@ public class CLI {
             PeriodoLetivo periodo = periodoLetivoService.encerrar(identificador);
             System.out.println("Período letivo encerrado com sucesso: " + periodo);
         } catch (IllegalArgumentException e) {
+            System.out.println("Erro: " + e.getMessage());
+        }
+    }
+
+    /**
+     * RF22 - Coordenador configura datas do período letivo
+     * Permite definir datas de início, fim e prazo de cancelamento
+     */
+    private void configurarDatasPeriodoLetivo() {
+        System.out.print("\nIdentificador do período letivo (ex: 2026.1): ");
+        String identificador = scanner.nextLine().trim();
+
+        try {
+            PeriodoLetivo periodo = periodoLetivoService.buscarPorIdentificador(identificador);
+            if (periodo == null) {
+                System.out.println("Erro: Período letivo não encontrado: " + identificador);
+                return;
+            }
+
+            System.out.println("\n=== Configurar Datas do Período " + identificador + " ===");
+            System.out.println("Status atual: " + periodo.getStatus());
+            System.out.println();
+
+            // Data de início
+            System.out.print("Data de início (formato: dd/MM/yyyy, ex: 01/03/2026): ");
+            String dataInicioStr = scanner.nextLine().trim();
+            java.time.LocalDate dataInicio = null;
+            if (!dataInicioStr.isBlank()) {
+                dataInicio = java.time.LocalDate.parse(dataInicioStr, 
+                    java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                periodo.setDataInicio(dataInicio);
+            }
+
+            // Data de fim
+            System.out.print("Data de fim (formato: dd/MM/yyyy, ex: 30/06/2026): ");
+            String dataFimStr = scanner.nextLine().trim();
+            java.time.LocalDate dataFim = null;
+            if (!dataFimStr.isBlank()) {
+                dataFim = java.time.LocalDate.parse(dataFimStr, 
+                    java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                periodo.setDataFim(dataFim);
+            }
+
+            // Data limite de cancelamento (RF22)
+            System.out.print("Data limite para cancelamento (formato: dd/MM/yyyy, ex: 30/05/2026): ");
+            String dataLimiteStr = scanner.nextLine().trim();
+            java.time.LocalDate dataLimite = null;
+            if (!dataLimiteStr.isBlank()) {
+                dataLimite = java.time.LocalDate.parse(dataLimiteStr, 
+                    java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                periodo.setDataLimiteCancelamento(dataLimite);
+            }
+
+            System.out.println("\n📋 Período Letivo Configurado:");
+            System.out.println("   Identificador: " + periodo.getIdentificador());
+            if (dataInicio != null) {
+                System.out.println("   Data de início: " + dataInicio);
+            }
+            if (dataFim != null) {
+                System.out.println("   Data de fim: " + dataFim);
+            }
+            if (dataLimite != null) {
+                System.out.println("   📍 Data limite de cancelamento (RF22): " + dataLimite);
+            }
+            System.out.println("   Status: " + periodo.getStatus());
+
+        } catch (java.time.format.DateTimeParseException e) {
+            System.out.println("Erro: Formato de data inválido. Use: dd/MM/yyyy (ex: 01/03/2026)");
+        } catch (Exception e) {
             System.out.println("Erro: " + e.getMessage());
         }
     }
@@ -345,6 +448,197 @@ public class CLI {
         } catch (IllegalArgumentException | IllegalStateException e) {
             System.out.println("Erro: " + e.getMessage());
         }
+    }
+
+    // ==================== RF16/RF21/RF22/RF23 - ALUNO ====================
+
+    /**
+     * RF16/RF21 - Aluno solicita matrícula em uma turma.
+     * Se houver vagas, matricula normalmente.
+     * Se não houver vagas, adiciona automaticamente à lista de espera (RF21).
+     */
+    private void solicitarMatriculaEmTurma() {
+        System.out.print("\nCódigo da turma: ");
+        String codigoTurma = scanner.nextLine().trim();
+
+        try {
+            // Obter turma para exibir informações
+            Turma turma = turmaService.obterTurma(codigoTurma);
+            if (turma == null) {
+                System.out.println("Erro: Turma não encontrada.");
+                return;
+            }
+
+            System.out.println("\n📚 " + turma.getDisciplina().getNome());
+            System.out.println("   Professor: " + turma.getProfessor().getNome());
+            System.out.println("   Horário: " + turma.getHorario());
+            System.out.println("   Sala: " + turma.getSala());
+            System.out.println("   Vagas disponíveis: " + turma.getVagasDisponiveis() + "/" + turma.getLimiteVagas());
+
+            // Solicitar matrícula
+            turmaService.solicitarMatricula(codigoTurma, usuarioLogado.getMatricula());
+
+            // Verificar se foi matriculado ou adicionado à fila
+            int posicao = turmaService.obterPosicaoEmEspera(codigoTurma, usuarioLogado.getMatricula());
+
+            if (posicao == -1) {
+                System.out.println("\n✅ Matrícula realizada com sucesso!");
+            } else {
+                System.out.println("\n❌ Turma cheia!");
+                System.out.println("✅ Você foi adicionado à lista de espera.");
+                System.out.println("📍 Sua posição na fila: " + posicao);
+                System.out.println("Você será promovido automaticamente quando uma vaga abrir.");
+            }
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            System.out.println("Erro: " + e.getMessage());
+        }
+    }
+
+    /**
+     * RF23 - Aluno acompanha matrícula e lista de espera em uma turma.
+     * Exibe posição na fila e informações da turma.
+     */
+    private void acompanharMatriculaEEspera() {
+        System.out.print("\nCódigo da turma: ");
+        String codigoTurma = scanner.nextLine().trim();
+
+        try {
+            Turma turma = turmaService.obterTurma(codigoTurma);
+            if (turma == null) {
+                System.out.println("Erro: Turma não encontrada.");
+                return;
+            }
+
+            String matriculaAluno = usuarioLogado.getMatricula();
+            int posicaoEspera = turmaService.obterPosicaoEmEspera(codigoTurma, matriculaAluno);
+
+            System.out.println("\n📊 " + turma.getDisciplina().getNome());
+            System.out.println("   Código: " + codigoTurma);
+            System.out.println("   Professor: " + turma.getProfessor().getNome());
+            System.out.println("   Horário: " + turma.getHorario());
+            System.out.println("   Sala: " + turma.getSala());
+            System.out.println("   ─────────────────────────");
+            System.out.println("   Vagas: " + turma.getVagasDisponiveis() + "/" + turma.getLimiteVagas() + " disponíveis");
+            System.out.println("   Matriculados: " + turma.getAlunoMatriculados().size());
+
+            if (posicaoEspera > 0) {
+                System.out.println("   ✅ Na lista de espera: SIM - Posição: " + posicaoEspera + " de " + turma.getAlunosEmEspera().size());
+                System.out.println("   👥 Alunos à sua frente: " + (posicaoEspera - 1));
+                System.out.println("   ─────────────────────────");
+                System.out.println("\nDeseja desistir da lista de espera? (s/n)");
+                String resposta = scanner.nextLine().trim().toLowerCase();
+                if (resposta.equals("s")) {
+                    turmaService.removerDaEspera(codigoTurma, matriculaAluno);
+                    System.out.println("✅ Você foi removido da lista de espera.");
+                }
+            } else if (turma.getAlunoMatriculados().contains(matriculaAluno)) {
+                System.out.println("   ✅ Status: MATRICULADO");
+            } else {
+                System.out.println("   ❌ Status: NÃO MATRICULADO");
+            }
+        } catch (IllegalArgumentException e) {
+            System.out.println("Erro: " + e.getMessage());
+        }
+    }
+
+    /**
+     * RF22/RF23 - Aluno cancela matrícula em uma turma.
+     * Valida se o cancelamento está dentro do prazo (RF22).
+     * Se sim, remove aluno e promove automaticamente primeiro da fila (RF23).
+     */
+    private void cancelarMatriculaEmTurma() {
+        System.out.print("\nCódigo da turma: ");
+        String codigoTurma = scanner.nextLine().trim();
+
+        try {
+            Turma turma = turmaService.obterTurma(codigoTurma);
+            if (turma == null) {
+                System.out.println("Erro: Turma não encontrada.");
+                return;
+            }
+
+            String matriculaAluno = usuarioLogado.getMatricula();
+
+            System.out.println("\n⚠️  Validando prazo de cancelamento...");
+
+            // Validar prazo usando o método do período letivo (RF22)
+            PeriodoLetivo periodo = turma.getPeriodoLetivo();
+            if (!periodo.permiteCancelamento()) {
+                System.out.println("❌ Cancelamento não permitido (fora do prazo).");
+                java.time.LocalDate dataLimite = periodo.getDataLimiteCancelamento();
+                System.out.println("   Data limite: " + dataLimite);
+                System.out.println("   Data de hoje: " + java.time.LocalDate.now());
+                return;
+            }
+
+            // Cancelar matrícula (promove automaticamente da fila)
+            turmaService.cancelarMatricula(codigoTurma, matriculaAluno);
+            
+            java.time.LocalDate dataLimite = periodo.getDataLimiteCancelamento();
+            if (dataLimite != null) {
+                System.out.println("\n✅ Matrícula cancelada com sucesso (prazo até: " + dataLimite + ")");
+            } else {
+                System.out.println("\n✅ Matrícula cancelada com sucesso");
+            }
+
+            // Verificar se havia alguém na fila para ser promovido
+            int totalEmEspera = turmaService.consultarQuantidadeEmEspera(codigoTurma);
+            if (totalEmEspera > 0) {
+                System.out.println("\n🎯 PROMOÇÃO AUTOMÁTICA (RF23):");
+                System.out.println("   ✅ Próximo aluno foi promovido da lista de espera");
+                System.out.println("   📍 Alunos ainda em fila: " + totalEmEspera);
+            }
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            System.out.println("Erro: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Normaliza o formato do horário para HH:mm-HH:mm
+     * Exemplo: "8:00-10:00" → "08:00-10:00"
+     */
+    private String normalizarHorario(String horario) {
+        if (horario == null || horario.isBlank()) {
+            return horario;
+        }
+
+        try {
+            String[] partes = horario.split("-");
+            if (partes.length != 2) {
+                throw new IllegalArgumentException("Horário deve estar no formato HH:mm-HH:mm (ex: 08:00-10:00)");
+            }
+
+            String inicio = partes[0].trim();
+            String fim = partes[1].trim();
+
+            // Normalizar cada parte para HH:mm
+            String inicioNormalizado = normalizarTempo(inicio);
+            String fimNormalizado = normalizarTempo(fim);
+
+            return inicioNormalizado + "-" + fimNormalizado;
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Formato de horário inválido. Use: HH:mm-HH:mm (ex: 08:00-10:00)");
+        }
+    }
+
+    /**
+     * Normaliza um tempo para formato HH:mm
+     * Exemplo: "8:00" → "08:00"
+     */
+    private String normalizarTempo(String tempo) {
+        String[] partes = tempo.split(":");
+        if (partes.length != 2) {
+            throw new IllegalArgumentException("Tempo deve estar no formato HH:mm");
+        }
+
+        int hora = Integer.parseInt(partes[0].trim());
+        int minuto = Integer.parseInt(partes[1].trim());
+
+        if (hora < 0 || hora > 23 || minuto < 0 || minuto > 59) {
+            throw new IllegalArgumentException("Hora e minuto devem estar em valores válidos");
+        }
+
+        return String.format("%02d:%02d", hora, minuto);
     }
 
     public static void main(String[] args) {

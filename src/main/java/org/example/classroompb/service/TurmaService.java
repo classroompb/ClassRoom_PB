@@ -399,6 +399,17 @@ public class TurmaService {
 		repository.salvarTodos(turmas);
 	}
 
+	/**
+	 * RF23: Obter turma atualizada com todas as informações de lista de espera
+	 */
+	public Turma obterTurma(String codigoTurma) {
+		Turma turma = buscarPorCodigo(codigoTurma);
+		if (turma == null) {
+			throw new IllegalArgumentException("Turma não encontrada: " + codigoTurma);
+		}
+		return turma;
+	}
+
 // RF14: O coordenador deve poder alterar uma turma antes do início das aulas
 
 	public Turma alterarTurma(String codigoTurma, String novaMatriculaProfessor, Integer novoLimiteVagas,

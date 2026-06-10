@@ -91,10 +91,8 @@ public class UsuarioService {
                     3. Cadastrar períodos letivos
                     4. Ativar período letivo
                     5. Encerrar período letivo
-                    6. Gerenciar vagas e horários
-                    7. Aprovar/cancelar matrículas
-                    8. Visualizar listas de espera
-                    9. Gerar relatórios acadêmicos
+                    6. Gerenciar turmas (alterar/cancelar)
+                    7. Configurar datas do período letivo (RF22)
                     10. Adicionar pré-requisito em disciplina
                     0. Sair
                     """;
