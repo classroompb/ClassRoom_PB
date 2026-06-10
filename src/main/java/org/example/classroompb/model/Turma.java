@@ -18,6 +18,7 @@ public class Turma implements Serializable {
     private String horario; // Formato: "HH:mm-HH:mm" (ex: "08:00-10:00")
     private String sala;
     private List<String> alunoMatriculados; // Lista de matrículas de alunos
+    private List<String> alunosEmEspera; // RF21: Lista de espera para quando não há vagas
 
     public Turma(String codigo, Disciplina disciplina, Professor professor, 
                  PeriodoLetivo periodoLetivo, int limiteVagas, String horario, String sala) {
@@ -30,6 +31,7 @@ public class Turma implements Serializable {
         this.horario = horario;
         this.sala = sala;
         this.alunoMatriculados = new ArrayList<>();
+        this.alunosEmEspera = new ArrayList<>();
     }
 
     // Getters
@@ -43,6 +45,8 @@ public class Turma implements Serializable {
     public String getSala() { return sala; }
     public List<String> getAlunoMatriculados() { return new ArrayList<>(alunoMatriculados); }
     public int getTotalMatriculados() { return alunoMatriculados.size(); }
+    public List<String> getAlunosEmEspera() { return new ArrayList<>(alunosEmEspera); } // RF21
+    public int getTotalEmEspera() { return alunosEmEspera.size(); } // RF21
 
     public void setProfessor(Professor professor) {
 		this.professor = professor;
@@ -86,6 +90,44 @@ public class Turma implements Serializable {
         }
     }
 
+    // RF21: Métodos para gerenciar lista de espera
+    public boolean alunoJaEmEspera(String matriculaAluno) {
+        return alunosEmEspera.contains(matriculaAluno);
+    }
+
+    public void adicionarAlunoEmEspera(String matriculaAluno) {
+        if (alunoJaMatriculado(matriculaAluno)) {
+            throw new IllegalArgumentException("Aluno já está matriculado nesta turma. (RN01)");
+        }
+        if (alunoJaEmEspera(matriculaAluno)) {
+            throw new IllegalArgumentException("Aluno já está em lista de espera. (RF21)");
+        }
+        alunosEmEspera.add(matriculaAluno);
+    }
+
+    public String promoverDaEspera() {
+        if (alunosEmEspera.isEmpty()) {
+            return null;
+        }
+        String proximoAluno = alunosEmEspera.remove(0);
+        if (temVagasDisponiveis()) {
+            alunoMatriculados.add(proximoAluno);
+            vagasDisponiveis--;
+            return proximoAluno;
+        }
+        alunosEmEspera.add(0, proximoAluno); // Re-adiciona no início se ainda não há vagas
+        return null;
+    }
+
+    public int obterPosicaoEmEspera(String matriculaAluno) {
+        int indice = alunosEmEspera.indexOf(matriculaAluno);
+        return indice >= 0 ? indice + 1 : -1; // Retorna 1-indexed, ou -1 se não está
+    }
+
+    public void removerDaEspera(String matriculaAluno) {
+        alunosEmEspera.remove(matriculaAluno);
+    }
+
     @Override
     public String toString() {
         return "Turma{" +
@@ -95,6 +137,7 @@ public class Turma implements Serializable {
                 ", horario='" + horario + '\'' +
                 ", sala='" + sala + '\'' +
                 ", vagas=" + vagasDisponiveis + "/" + limiteVagas +
+                ", emEspera=" + alunosEmEspera.size() +
                 '}';
     }
 }

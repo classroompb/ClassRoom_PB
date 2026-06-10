@@ -106,6 +106,16 @@ public class TurmaService {
 		}
 
 		turma.cancelarMatricula(matriculaAluno);
+		
+		// RF21: Promover aluno da lista de espera se houver vagas agora
+		if (turma.temVagasDisponiveis() && !turma.getAlunosEmEspera().isEmpty()) {
+			String proximoAluno = turma.promoverDaEspera();
+			if (proximoAluno != null) {
+				// Não precisamos validar pré-requisitos e horários novamente
+				// pois foram validados quando entrou na fila
+			}
+		}
+		
 		repository.salvarTodos(turmas);
 	}
 
@@ -292,9 +302,40 @@ public class TurmaService {
 
 	/**
 	 * RF16: O aluno deve poder solicitar matricula em uma turma.
+	 * RF21: Se não houver vaga, o aluno entra em lista de espera.
 	 */
 	public void solicitarMatricula(String codigoTurma, String matriculaAluno) {
-		matricularAluno(codigoTurma, matriculaAluno);
+		Turma turma = buscarPorCodigo(codigoTurma);
+		if (turma == null) {
+			throw new IllegalArgumentException("Turma não encontrada: " + codigoTurma);
+		}
+
+		// Valida aluno existe
+		Usuario usuario = usuarioService.buscarPorMatricula(matriculaAluno);
+		if (!(usuario instanceof Aluno)) {
+			throw new IllegalArgumentException("Aluno não encontrado: " + matriculaAluno);
+		}
+
+		// RN01: Verifica se aluno já está matriculado
+		if (turma.alunoJaMatriculado(matriculaAluno)) {
+			throw new IllegalArgumentException("Aluno já está matriculado nesta turma. (RN01)");
+		}
+
+		// RN02: Verifica conflitos de horários
+		validarConflitosHorario(matriculaAluno, turma.getHorario());
+
+		// RN04 + RN05: Valida pré-requisitos
+		validarPreRequisitos(matriculaAluno, turma.getDisciplina());
+
+		// RF21: Se houver vagas, matricula normalmente
+		if (turma.temVagasDisponiveis()) {
+			turma.matricularAluno(matriculaAluno);
+		} else {
+			// RF21: Sem vagas, aluno entra em lista de espera
+			turma.adicionarAlunoEmEspera(matriculaAluno);
+		}
+		
+		repository.salvarTodos(turmas);
 	}
 
 	/**
@@ -314,6 +355,41 @@ public class TurmaService {
 			throw new IllegalArgumentException("Turma nao encontrada: " + codigoTurma);
 		}
 		return turma.getVagasDisponiveis();
+	}
+
+	/**
+	 * RF21: Consultar posição do aluno na lista de espera.
+	 * Retorna a posição (1-indexed) ou -1 se não estiver na fila.
+	 */
+	public int obterPosicaoEmEspera(String codigoTurma, String matriculaAluno) {
+		Turma turma = buscarPorCodigo(codigoTurma);
+		if (turma == null) {
+			throw new IllegalArgumentException("Turma não encontrada: " + codigoTurma);
+		}
+		return turma.obterPosicaoEmEspera(matriculaAluno);
+	}
+
+	/**
+	 * RF21: Consultar quantidade de alunos na lista de espera.
+	 */
+	public int consultarQuantidadeEmEspera(String codigoTurma) {
+		Turma turma = buscarPorCodigo(codigoTurma);
+		if (turma == null) {
+			throw new IllegalArgumentException("Turma não encontrada: " + codigoTurma);
+		}
+		return turma.getTotalEmEspera();
+	}
+
+	/**
+	 * RF21: Remover aluno da lista de espera (ex: se desistiu da disciplina).
+	 */
+	public void removerDaEspera(String codigoTurma, String matriculaAluno) {
+		Turma turma = buscarPorCodigo(codigoTurma);
+		if (turma == null) {
+			throw new IllegalArgumentException("Turma não encontrada: " + codigoTurma);
+		}
+		turma.removerDaEspera(matriculaAluno);
+		repository.salvarTodos(turmas);
 	}
 
 // RF14: O coordenador deve poder alterar uma turma antes do início das aulas

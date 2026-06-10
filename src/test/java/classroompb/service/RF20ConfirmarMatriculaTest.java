@@ -80,11 +80,17 @@ class RF20ConfirmarMatriculaTest {
 
     @Test
     @Order(3)
-    void naoDeveConfirmarMatriculaQuandoSemVagas() {
+    void naoDeveConfirmarMatriculaQuandoSemVagasIntegrComRF21() {
+        // RF21: Quando não há vagas, aluno entra em lista de espera
         Turma turma = turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
         turmaService.solicitarMatricula(turma.getCodigo(), "A001");
-        assertThrows(IllegalArgumentException.class, () ->
-            turmaService.solicitarMatricula(turma.getCodigo(), "A002"));
+        
+        // A002 será adicionado à fila, não lançará exceção
+        turmaService.solicitarMatricula(turma.getCodigo(), "A002");
+        
+        // Validar que A002 está em fila, não matriculado
+        assertFalse(turma.alunoJaMatriculado("A002"));
+        assertTrue(turma.alunoJaEmEspera("A002"));
     }
 
     @Test
