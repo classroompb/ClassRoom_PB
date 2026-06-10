@@ -98,11 +98,18 @@ public class TurmaService {
 
 	/**
 	 * RN01: Cancela matrícula de aluno em turma
+	 * RF22: O aluno deve poder cancelar matrícula dentro do período permitido
 	 */
 	public void cancelarMatricula(String codigoTurma, String matriculaAluno) {
 		Turma turma = buscarPorCodigo(codigoTurma);
 		if (turma == null) {
 			throw new IllegalArgumentException("Turma não encontrada: " + codigoTurma);
+		}
+
+		// RF22: Validar se cancelamento está dentro do período permitido
+		PeriodoLetivo periodo = turma.getPeriodoLetivo();
+		if (periodo != null && !periodo.permiteCancelamento()) {
+			throw new IllegalArgumentException("Cancelamento de matrícula não é permitido fora do prazo. (RF22)");
 		}
 
 		turma.cancelarMatricula(matriculaAluno);

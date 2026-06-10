@@ -46,6 +46,8 @@
             </plugin>
 
             <!-- Cobertura com Emma -->
+            <!-- TEMPORARIAMENTE DESABILITADO PARA TESTES COM JAVA 17 -->
+            <!--
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>emma-maven-plugin</artifactId>
@@ -67,8 +69,11 @@
                     </filters>
                 </configuration>
             </plugin>
+            -->
 
             <!-- Plugin para rodar Emma Reports -->
+            <!-- TEMPORARIAMENTE DESABILITADO PARA TESTES COM JAVA 17 -->
+            <!--
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
@@ -109,6 +114,7 @@
 
                 </executions>
             </plugin>
+            -->
 
         </plugins>
     </build>
