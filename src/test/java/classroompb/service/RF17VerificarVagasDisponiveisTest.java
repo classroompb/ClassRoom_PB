@@ -101,13 +101,16 @@ class RF17VerificarVagasDisponiveisTest {
     }
 
     @Test
-    void deveRejeitarSolicitacaoQuandoTurmaNaoTemVagas() {
+    void deveColocarAlunoEmListaDeEsperaQuandoTurmaNaoTemVagas() {
         usuarioService.cadastrar("ALUNO", "Aluno 2", "A002", "aluno2@example.com", "1234");
         Turma turma = turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
 
-        turmaService.solicitarMatricula(turma.getCodigo(), "A001");
+        turmaService.solicitarMatricula(turma.getCodigo(), "A001"); // ocupa a unica vaga
 
-        assertThrows(IllegalArgumentException.class, () ->
-                turmaService.solicitarMatricula(turma.getCodigo(), "A002"));
+        // RF21: sem vagas, o aluno entra na lista de espera (nao lanca excecao)
+        turmaService.solicitarMatricula(turma.getCodigo(), "A002");
+
+        assertFalse(turmaService.verificarVagasDisponiveis(turma.getCodigo()));
+        assertEquals(1, turmaService.obterPosicaoEmEspera(turma.getCodigo(), "A002"));
     }
 }
