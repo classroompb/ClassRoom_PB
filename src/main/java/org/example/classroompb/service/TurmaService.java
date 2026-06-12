@@ -113,17 +113,94 @@ public class TurmaService {
 		}
 
 		turma.cancelarMatricula(matriculaAluno);
-		
-		// RF21: Promover aluno da lista de espera se houver vagas agora
-		if (turma.temVagasDisponiveis() && !turma.getAlunosEmEspera().isEmpty()) {
-			String proximoAluno = turma.promoverDaEspera();
-			if (proximoAluno != null) {
-				// Não precisamos validar pré-requisitos e horários novamente
-				// pois foram validados quando entrou na fila
-			}
-		}
-		
+
+		// RF24: Ao liberar uma vaga, o sistema chama automaticamente o próximo
+		// aluno da lista de espera (respeitando a ordem de solicitação - RF25).
+		// Pré-requisitos e horários já foram validados na entrada da fila (RF21).
+		promoverDaListaDeEspera(turma);
+
 		repository.salvarTodos(turmas);
+	}
+
+	/**
+	 * RF24 + RF25: Promove os próximos alunos da lista de espera enquanto houver
+	 * vagas, sempre na ordem de solicitação (FIFO). Não persiste — quem chama é
+	 * responsável por salvar. Retorna as matrículas promovidas, em ordem.
+	 */
+	private List<String> promoverDaListaDeEspera(Turma turma) {
+		List<String> promovidos = new ArrayList<>();
+		while (turma.temVagasDisponiveis() && turma.getTotalEmEspera() > 0) {
+			String promovido = turma.promoverDaEspera();
+			if (promovido == null) {
+				break;
+			}
+			promovidos.add(promovido);
+		}
+		return promovidos;
+	}
+
+	/**
+	 * RF24: Quando uma vaga for liberada, o sistema deve chamar automaticamente o
+	 * próximo aluno da lista de espera. Este método torna a chamada explícita e
+	 * pode ser acionado por qualquer evento que libere vagas (cancelamento de
+	 * matrícula, aumento do limite de vagas etc.).
+	 *
+	 * @return lista de matrículas promovidas (na ordem de solicitação - RF25),
+	 *         ou lista vazia se não houver vagas/ninguém na fila.
+	 */
+	public List<String> chamarProximosDaListaDeEspera(String codigoTurma) {
+		Turma turma = buscarPorCodigo(codigoTurma);
+		if (turma == null) {
+			throw new IllegalArgumentException("Turma não encontrada: " + codigoTurma);
+		}
+		List<String> promovidos = promoverDaListaDeEspera(turma);
+		if (!promovidos.isEmpty()) {
+			repository.salvarTodos(turmas);
+		}
+		return promovidos;
+	}
+
+	/**
+	 * RF25: A lista de espera deve respeitar a ordem de solicitação. Retorna as
+	 * matrículas da fila na ordem em que foram solicitadas (FIFO).
+	 */
+	public List<String> listarListaDeEspera(String codigoTurma) {
+		Turma turma = buscarPorCodigo(codigoTurma);
+		if (turma == null) {
+			throw new IllegalArgumentException("Turma não encontrada: " + codigoTurma);
+		}
+		return turma.getAlunosEmEspera();
+	}
+
+	/**
+	 * RF26: O coordenador deve poder visualizar a lista de espera de cada turma.
+	 * Retorna a fila ordenada (RF25) com posição, matrícula e nome de cada aluno.
+	 */
+	public List<ItemListaEspera> visualizarListaDeEspera(String codigoTurma) {
+		Turma turma = buscarPorCodigo(codigoTurma);
+		if (turma == null) {
+			throw new IllegalArgumentException("Turma não encontrada: " + codigoTurma);
+		}
+
+		List<ItemListaEspera> itens = new ArrayList<>();
+		List<String> fila = turma.getAlunosEmEspera();
+		for (int i = 0; i < fila.size(); i++) {
+			String matricula = fila.get(i);
+			Usuario usuario = usuarioService.buscarPorMatricula(matricula);
+			String nome = (usuario != null) ? usuario.getNome() : "(aluno não encontrado)";
+			itens.add(new ItemListaEspera(i + 1, matricula, nome));
+		}
+		return itens;
+	}
+
+	/**
+	 * RF26: Lista todas as turmas que possuem alunos em lista de espera, para que
+	 * o coordenador tenha uma visão geral de onde há fila.
+	 */
+	public List<Turma> listarTurmasComListaDeEspera() {
+		return turmas.stream()
+				.filter(t -> t.getTotalEmEspera() > 0)
+				.collect(Collectors.toList());
 	}
 
 	/**
@@ -445,7 +522,10 @@ public class TurmaService {
 		}
 
 		if (novoLimiteVagas != null && novoLimiteVagas > 0) {
-			turma.setLimiteVagas(novoLimiteVagas);
+			// Ajusta o limite mantendo coerência com as vagas disponíveis.
+			turma.ajustarLimiteVagas(novoLimiteVagas);
+			// RF24: vagas liberadas pelo aumento chamam automaticamente a fila.
+			promoverDaListaDeEspera(turma);
 		}
 
 		if (novoHorario != null && !novoHorario.isBlank()) {

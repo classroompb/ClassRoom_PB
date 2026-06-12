@@ -2,6 +2,7 @@ package org.example.classroompb.cli;
 
 import org.example.classroompb.model.Curso;
 import org.example.classroompb.model.Disciplina;
+import org.example.classroompb.model.ItemListaEspera;
 import org.example.classroompb.model.PeriodoLetivo;
 import org.example.classroompb.model.TipoUsuario;
 import org.example.classroompb.model.Turma;
@@ -17,6 +18,7 @@ import org.example.classroompb.service.DisciplinaService;
 import org.example.classroompb.service.PeriodoLetivoService;
 import org.example.classroompb.service.TurmaService;
 
+import java.util.List;
 import java.util.Scanner;
 
 public class CLI {
@@ -169,6 +171,12 @@ public class CLI {
         // RF22 - Coordenador configura datas do período letivo (prazo de cancelamento)
         if (usuarioLogado.getTipo() == TipoUsuario.COORDENADOR && opcao.equals("7")) {
             configurarDatasPeriodoLetivo();
+            return;
+        }
+
+        // RF26 - Coordenador visualiza a lista de espera das turmas
+        if (usuarioLogado.getTipo() == TipoUsuario.COORDENADOR && opcao.equals("8")) {
+            visualizarListaEsperaTurmas();
             return;
         }
 
@@ -447,6 +455,65 @@ public class CLI {
             System.out.println("Turma cancelada com sucesso.");
         } catch (IllegalArgumentException | IllegalStateException e) {
             System.out.println("Erro: " + e.getMessage());
+        }
+    }
+
+    /**
+     * RF26 - Coordenador visualiza a lista de espera de cada turma.
+     * Permite consultar uma turma específica ou listar todas as turmas com fila.
+     */
+    private void visualizarListaEsperaTurmas() {
+        System.out.println("\n=== LISTA DE ESPERA (RF26) ===");
+        System.out.println("1. Visualizar lista de espera de uma turma");
+        System.out.println("2. Listar todas as turmas com fila de espera");
+        System.out.println("0. Voltar");
+        System.out.print("Escolha: ");
+        String opcao = scanner.nextLine().trim();
+
+        switch (opcao) {
+            case "1" -> visualizarListaEsperaDeUmaTurma();
+            case "2" -> listarTurmasComListaEspera();
+            case "0" -> System.out.println("Voltando ao menu.");
+            default -> System.out.println("Opção inválida.");
+        }
+    }
+
+    private void visualizarListaEsperaDeUmaTurma() {
+        System.out.print("Código da turma: ");
+        String codigoTurma = scanner.nextLine().trim();
+
+        try {
+            Turma turma = turmaService.obterTurma(codigoTurma);
+            List<ItemListaEspera> fila = turmaService.visualizarListaDeEspera(codigoTurma);
+
+            System.out.println("\n📋 Turma " + turma.getCodigo() + " - " + turma.getDisciplina().getNome());
+            System.out.println("   Vagas: " + turma.getVagasDisponiveis() + "/" + turma.getLimiteVagas());
+            System.out.println("   ─────────────────────────");
+
+            if (fila.isEmpty()) {
+                System.out.println("   Nenhum aluno na lista de espera.");
+            } else {
+                System.out.println("   Lista de espera (ordem de solicitação):");
+                for (ItemListaEspera item : fila) {
+                    System.out.println("   " + item);
+                }
+            }
+        } catch (IllegalArgumentException e) {
+            System.out.println("Erro: " + e.getMessage());
+        }
+    }
+
+    private void listarTurmasComListaEspera() {
+        List<Turma> turmas = turmaService.listarTurmasComListaDeEspera();
+        if (turmas.isEmpty()) {
+            System.out.println("\nNenhuma turma possui alunos em lista de espera.");
+            return;
+        }
+
+        System.out.println("\nTurmas com lista de espera:");
+        for (Turma turma : turmas) {
+            System.out.println("   • " + turma.getCodigo() + " - " + turma.getDisciplina().getNome()
+                    + " | em espera: " + turma.getTotalEmEspera());
         }
     }
 

@@ -56,6 +56,24 @@ public class Turma implements Serializable {
 		this.limiteVagas = limiteVagas;
 	}
 
+	/**
+	 * Ajusta o limite de vagas mantendo a coerência com as vagas disponíveis.
+	 * Ao aumentar o limite, novas vagas são liberadas (base para o RF24).
+	 * Não permite reduzir abaixo do número de alunos já matriculados.
+	 */
+	public void ajustarLimiteVagas(int novoLimite) {
+		if (novoLimite <= 0) {
+			throw new IllegalArgumentException("Limite de vagas deve ser maior que zero.");
+		}
+		int matriculados = alunoMatriculados.size();
+		if (novoLimite < matriculados) {
+			throw new IllegalArgumentException("Novo limite (" + novoLimite
+					+ ") não pode ser menor que o número de alunos já matriculados (" + matriculados + ").");
+		}
+		this.limiteVagas = novoLimite;
+		this.vagasDisponiveis = novoLimite - matriculados;
+	}
+
 	public void setHorario(String horario) {
 		this.horario = horario;
 	}

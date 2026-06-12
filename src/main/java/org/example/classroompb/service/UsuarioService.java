@@ -93,6 +93,7 @@ public class UsuarioService {
                     5. Encerrar período letivo
                     6. Gerenciar turmas (alterar/cancelar)
                     7. Configurar datas do período letivo (RF22)
+                    8. Visualizar lista de espera das turmas (RF26)
                     10. Adicionar pré-requisito em disciplina
                     0. Sair
                     """;
