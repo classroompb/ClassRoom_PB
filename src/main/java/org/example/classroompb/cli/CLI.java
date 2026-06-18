@@ -4,6 +4,7 @@ import org.example.classroompb.model.Curso;
 import org.example.classroompb.model.Disciplina;
 import org.example.classroompb.model.ItemListaEspera;
 import org.example.classroompb.model.PeriodoLetivo;
+import org.example.classroompb.model.RegistroFrequencia;
 import org.example.classroompb.model.TipoUsuario;
 import org.example.classroompb.model.Turma;
 import org.example.classroompb.model.Usuario;
@@ -12,12 +13,16 @@ import org.example.classroompb.repository.UsuarioRepository;
 import org.example.classroompb.repository.DisciplinaRepository;
 import org.example.classroompb.repository.PeriodoLetivoRepository;
 import org.example.classroompb.repository.TurmaRepository;
+import org.example.classroompb.repository.FrequenciaRepository;
 import org.example.classroompb.service.CursoService;
 import org.example.classroompb.service.UsuarioService;
 import org.example.classroompb.service.DisciplinaService;
 import org.example.classroompb.service.PeriodoLetivoService;
 import org.example.classroompb.service.TurmaService;
+import org.example.classroompb.service.FrequenciaService;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Scanner;
 
@@ -28,6 +33,7 @@ public class CLI {
     private final DisciplinaService disciplinaService;
     private final PeriodoLetivoService periodoLetivoService;
     private final TurmaService turmaService;
+    private final FrequenciaService frequenciaService;
     private final Scanner scanner;
     private Usuario usuarioLogado;
 
@@ -37,6 +43,7 @@ public class CLI {
         this.disciplinaService = new DisciplinaService(new DisciplinaRepository());
         this.periodoLetivoService = new PeriodoLetivoService(new PeriodoLetivoRepository());
         this.turmaService = new TurmaService(new TurmaRepository(), usuarioService, disciplinaService);
+        this.frequenciaService = new FrequenciaService(new FrequenciaRepository(), usuarioService, turmaService);
         this.scanner = new Scanner(System.in);
     }
 
@@ -180,6 +187,12 @@ public class CLI {
             return;
         }
 
+        // RF27 - Professor registra presença/falta do aluno
+        if (usuarioLogado.getTipo() == TipoUsuario.PROFESSOR && opcao.equals("2")) {
+            registrarFrequencia();
+            return;
+        }
+
         // RF16/RF21 - Aluno solicita matrícula (ou entra em fila se sem vagas)
         if (usuarioLogado.getTipo() == TipoUsuario.ALUNO && opcao.equals("2")) {
             solicitarMatriculaEmTurma();
@@ -214,7 +227,48 @@ public class CLI {
             System.out.println("Erro: " + e.getMessage());
         }
     }
-    
+
+    // RF27 - Professor registra presença/falta de um aluno de uma turma numa data
+    private void registrarFrequencia() {
+        System.out.print("Código da turma: ");
+        String codigoTurma = scanner.nextLine().trim();
+        System.out.print("Matrícula do aluno: ");
+        String matriculaAluno = scanner.nextLine().trim();
+        System.out.print("Data da aula (AAAA-MM-DD): ");
+        String dataTexto = scanner.nextLine().trim();
+        System.out.print("Presença? (P = presente / F = falta): ");
+        String status = scanner.nextLine().trim();
+
+        LocalDate data;
+        try {
+            data = LocalDate.parse(dataTexto);
+        } catch (DateTimeParseException e) {
+            System.out.println("Erro: data inválida. Use o formato AAAA-MM-DD (ex: 2026-06-17).");
+            return;
+        }
+
+        boolean presente;
+        if (status.equalsIgnoreCase("P")) {
+            presente = true;
+        } else if (status.equalsIgnoreCase("F")) {
+            presente = false;
+        } else {
+            System.out.println("Erro: informe P (presente) ou F (falta).");
+            return;
+        }
+
+        try {
+            RegistroFrequencia registro =
+                    frequenciaService.registrarFrequencia(codigoTurma, matriculaAluno, data, presente);
+            System.out.println("Frequência registrada: " + registro);
+            System.out.println("Resumo deste aluno na turma -> presenças: "
+                    + frequenciaService.contarPresencas(codigoTurma, matriculaAluno)
+                    + " | faltas: " + frequenciaService.contarFaltas(codigoTurma, matriculaAluno));
+        } catch (IllegalArgumentException e) {
+            System.out.println("Erro: " + e.getMessage());
+        }
+    }
+
     private void cadastrarDisciplina() {
     	 System.out.print("Código da disciplina:  ");
          String codigo = scanner.nextLine().trim();
