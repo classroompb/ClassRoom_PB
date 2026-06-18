@@ -1,0 +1,190 @@
+==============================
+   Bem-vindo ao ClassRoomPB  
+==============================
+
+1. Login
+2. Cadastrar usuário
+0. Sair
+Escolha: Tipo (ALUNO/PROFESSOR/COORDENADOR/ADMINISTRADOR): Nome: Matrícula: Email: Senha: Usuário cadastrado com sucesso: [COORDENADOR] Carlos Coordenador | Matrícula: C001 | Email: carlos@ifpb.edu.br
+
+1. Login
+2. Cadastrar usuário
+0. Sair
+Escolha: Tipo (ALUNO/PROFESSOR/COORDENADOR/ADMINISTRADOR): Nome: Matrícula: Email: Senha: Usuário cadastrado com sucesso: [PROFESSOR] Ana Professora | Matrícula: P001 | Email: ana@ifpb.edu.br
+
+1. Login
+2. Cadastrar usuário
+0. Sair
+Escolha: Tipo (ALUNO/PROFESSOR/COORDENADOR/ADMINISTRADOR): Nome: Matrícula: Email: Senha: Usuário cadastrado com sucesso: [ALUNO] Joao Aluno | Matrícula: A001 | Email: joao@ifpb.edu.br
+
+1. Login
+2. Cadastrar usuário
+0. Sair
+Escolha: Tipo (ALUNO/PROFESSOR/COORDENADOR/ADMINISTRADOR): Nome: Matrícula: Email: Senha: Usuário cadastrado com sucesso: [ALUNO] Maria Aluna | Matrícula: A002 | Email: maria@ifpb.edu.br
+
+1. Login
+2. Cadastrar usuário
+0. Sair
+Escolha: Matrícula ou email: Senha: 
+Login realizado com sucesso! Bem-vindo(a), Carlos Coordenador.
+=== MENU COORDENADOR ===
+1. Cadastrar disciplinas
+2. Ofertar turmas
+3. Cadastrar períodos letivos
+4. Ativar período letivo
+5. Encerrar período letivo
+6. Gerenciar turmas (alterar/cancelar)
+7. Configurar datas do período letivo (RF22)
+8. Visualizar lista de espera das turmas (RF26)
+10. Adicionar pré-requisito em disciplina
+0. Sair
+
+Escolha: Código da disciplina:  Nome da disciplina:  Carga horária da disciplina:  Créditos da disciplina:  
+Disciplina cadastrada com sucesso.
+
+
+=== MENU COORDENADOR ===
+1. Cadastrar disciplinas
+2. Ofertar turmas
+3. Cadastrar períodos letivos
+4. Ativar período letivo
+5. Encerrar período letivo
+6. Gerenciar turmas (alterar/cancelar)
+7. Configurar datas do período letivo (RF22)
+8. Visualizar lista de espera das turmas (RF26)
+10. Adicionar pré-requisito em disciplina
+0. Sair
+
+Escolha: Identificador do período letivo (ex: 2026.1): Período letivo cadastrado com sucesso: 2026.1 - INATIVO
+
+Deseja configurar as datas agora? (s/n): === MENU COORDENADOR ===
+1. Cadastrar disciplinas
+2. Ofertar turmas
+3. Cadastrar períodos letivos
+4. Ativar período letivo
+5. Encerrar período letivo
+6. Gerenciar turmas (alterar/cancelar)
+7. Configurar datas do período letivo (RF22)
+8. Visualizar lista de espera das turmas (RF26)
+10. Adicionar pré-requisito em disciplina
+0. Sair
+
+Escolha: Funcionalidade em desenvolvimento.
+=== MENU COORDENADOR ===
+1. Cadastrar disciplinas
+2. Ofertar turmas
+3. Cadastrar períodos letivos
+4. Ativar período letivo
+5. Encerrar período letivo
+6. Gerenciar turmas (alterar/cancelar)
+7. Configurar datas do período letivo (RF22)
+8. Visualizar lista de espera das turmas (RF26)
+10. Adicionar pré-requisito em disciplina
+0. Sair
+
+Escolha: Código da disciplina: Matrícula do professor: Identificador do período letivo (ex: 2026.1): Limite de vagas: Horário (ex: 08:00-10:00): Sala: Turma ofertada com sucesso: Turma{codigo='CC101-2026.1-01', disciplina=Programacao I, professor=Ana Professora, horario='08:00-10:00', sala='Sala 5', vagas=30/30, emEspera=0}
+=== MENU COORDENADOR ===
+1. Cadastrar disciplinas
+2. Ofertar turmas
+3. Cadastrar períodos letivos
+4. Ativar período letivo
+5. Encerrar período letivo
+6. Gerenciar turmas (alterar/cancelar)
+7. Configurar datas do período letivo (RF22)
+8. Visualizar lista de espera das turmas (RF26)
+10. Adicionar pré-requisito em disciplina
+0. Sair
+
+Escolha: Logout realizado.
+
+1. Login
+2. Cadastrar usuário
+0. Sair
+Escolha: Matrícula ou email: Senha: 
+Login realizado com sucesso! Bem-vindo(a), Joao Aluno.
+=== MENU ALUNO ===
+1. Consultar disciplinas e turmas
+2. Solicitar matrícula
+3. Acompanhar matrícula e lista de espera
+4. Consultar frequência e notas
+5. Consultar histórico acadêmico
+6. Cancelar matrícula
+0. Sair
+
+Escolha: 
+Código da turma: 
+📚 Programacao I
+   Professor: Ana Professora
+   Horário: 08:00-10:00
+   Sala: Sala 5
+   Vagas disponíveis: 30/30
+
+✅ Matrícula realizada com sucesso!
+=== MENU ALUNO ===
+1. Consultar disciplinas e turmas
+2. Solicitar matrícula
+3. Acompanhar matrícula e lista de espera
+4. Consultar frequência e notas
+5. Consultar histórico acadêmico
+6. Cancelar matrícula
+0. Sair
+
+Escolha: Logout realizado.
+
+1. Login
+2. Cadastrar usuário
+0. Sair
+Escolha: Matrícula ou email: Senha: 
+Login realizado com sucesso! Bem-vindo(a), Ana Professora.
+=== MENU PROFESSOR ===
+1. Visualizar turmas
+2. Registrar frequência
+3. Lançar notas
+4. Acompanhar alunos
+5. Alterar notas (antes do fechamento)
+0. Sair
+
+Escolha: Código da turma: Matrícula do aluno: Data da aula (AAAA-MM-DD): Presença? (P = presente / F = falta): Frequência registrada: RegistroFrequencia{turma='CC101-2026.1-01', aluno='A001', data=2026-06-01, status=PRESENTE}
+Resumo deste aluno na turma -> presenças: 1 | faltas: 0
+=== MENU PROFESSOR ===
+1. Visualizar turmas
+2. Registrar frequência
+3. Lançar notas
+4. Acompanhar alunos
+5. Alterar notas (antes do fechamento)
+0. Sair
+
+Escolha: Código da turma: Matrícula do aluno: Data da aula (AAAA-MM-DD): Presença? (P = presente / F = falta): Frequência registrada: RegistroFrequencia{turma='CC101-2026.1-01', aluno='A001', data=2026-06-08, status=FALTA}
+Resumo deste aluno na turma -> presenças: 1 | faltas: 1
+=== MENU PROFESSOR ===
+1. Visualizar turmas
+2. Registrar frequência
+3. Lançar notas
+4. Acompanhar alunos
+5. Alterar notas (antes do fechamento)
+0. Sair
+
+Escolha: Código da turma: Matrícula do aluno: Data da aula (AAAA-MM-DD): Presença? (P = presente / F = falta): Erro: Já existe registro de frequência para o aluno A001 na data 2026-06-01.
+=== MENU PROFESSOR ===
+1. Visualizar turmas
+2. Registrar frequência
+3. Lançar notas
+4. Acompanhar alunos
+5. Alterar notas (antes do fechamento)
+0. Sair
+
+Escolha: Código da turma: Matrícula do aluno: Data da aula (AAAA-MM-DD): Presença? (P = presente / F = falta): Erro: Aluno não está matriculado na turma CC101-2026.1-01: A002
+=== MENU PROFESSOR ===
+1. Visualizar turmas
+2. Registrar frequência
+3. Lançar notas
+4. Acompanhar alunos
+5. Alterar notas (antes do fechamento)
+0. Sair
+
+Escolha: Logout realizado.
+
+1. Login
+2. Cadastrar usuário
+0. Sair
+Escolha: Sistema encerrado. Até logo!
