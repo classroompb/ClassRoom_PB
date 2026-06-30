@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 /**
  * RF27: O professor deve poder registrar presença/falta do aluno.
+ * RF28: O sistema deve calcular automaticamente o percentual de frequência.
  *
  * <p>Valida que a turma existe, que o aluno existe e está matriculado na turma, e
  * que ainda não há registro para aquele aluno naquela data, antes de gravar. Todos
@@ -121,5 +122,76 @@ public class FrequenciaService {
     /** Conta as presenças de um aluno em uma turma. */
     public long contarPresencas(String codigoTurma, String matriculaAluno) {
         return listarPorAluno(codigoTurma, matriculaAluno).stream().filter(RegistroFrequencia::isPresente).count();
+    }
+    
+ // ========================= RF28 =========================
+
+    /**
+     * RF28: Calcula automaticamente o percentual de frequência de um aluno em uma turma.
+     *
+     * @param codigoTurma    código da turma.
+     * @param matriculaAluno matrícula do aluno.
+     * @return percentual de frequência entre 0.0 e 100.0.
+     */
+    public double calcularPercentualFrequencia(String codigoTurma, String matriculaAluno) {
+        if (codigoTurma == null || codigoTurma.isBlank()) {
+            throw new IllegalArgumentException("Código da turma não pode ser vazio.");
+        }
+        if (matriculaAluno == null || matriculaAluno.isBlank()) {
+            throw new IllegalArgumentException("Matrícula do aluno não pode ser vazia.");
+        }
+
+        Turma turma = turmaService.buscarPorCodigo(codigoTurma);
+        if (turma == null) {
+            throw new IllegalArgumentException("Turma não encontrada: " + codigoTurma);
+        }
+
+        Usuario usuario = usuarioService.buscarPorMatricula(matriculaAluno);
+        if (!(usuario instanceof Aluno)) {
+            throw new IllegalArgumentException("Aluno não encontrado: " + matriculaAluno);
+        }
+
+        if (!turma.alunoJaMatriculado(matriculaAluno)) {
+            throw new IllegalArgumentException(
+                    "Aluno não está matriculado na turma " + turma.getCodigo() + ": " + matriculaAluno);
+        }
+
+        List<RegistroFrequencia> registrosAluno = listarPorAluno(codigoTurma, matriculaAluno);
+        if (registrosAluno.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Nenhum registro de frequência encontrado para o aluno " + matriculaAluno
+                    + " na turma " + codigoTurma + ".");
+        }
+
+        int total = registrosAluno.size();
+        int presencas = 0;
+        for (RegistroFrequencia r : registrosAluno) {
+            if (r.isPresente()) {
+                presencas++;
+            }
+        }
+
+        return (presencas * 100.0) / total;
+    }
+
+    /**
+     * RF28: Retorna um resumo textual da frequência do aluno na turma.
+     */
+    public String gerarResumoFrequencia(String codigoTurma, String matriculaAluno) {
+        double percentual = calcularPercentualFrequencia(codigoTurma, matriculaAluno);
+        List<RegistroFrequencia> registrosAluno = listarPorAluno(codigoTurma, matriculaAluno);
+
+        int total = registrosAluno.size();
+        int presencas = 0;
+        for (RegistroFrequencia r : registrosAluno) {
+            if (r.isPresente()) {
+                presencas++;
+            }
+        }
+
+        return "Aluno " + matriculaAluno
+                + " — Turma " + codigoTurma
+                + ": " + presencas + "/" + total + " presenças"
+                + " (" + String.format("%.1f", percentual) + "%)";
     }
 }

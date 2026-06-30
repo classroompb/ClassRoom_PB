@@ -20,6 +20,8 @@ import org.example.classroompb.service.DisciplinaService;
 import org.example.classroompb.service.PeriodoLetivoService;
 import org.example.classroompb.service.TurmaService;
 import org.example.classroompb.service.FrequenciaService;
+import org.example.classroompb.service.ConsultaFrequenciaService;
+import org.example.classroompb.model.FrequenciaDisciplina;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
@@ -34,6 +36,7 @@ public class CLI {
     private final PeriodoLetivoService periodoLetivoService;
     private final TurmaService turmaService;
     private final FrequenciaService frequenciaService;
+    private final ConsultaFrequenciaService consultaFrequenciaService;
     private final Scanner scanner;
     private Usuario usuarioLogado;
 
@@ -44,6 +47,8 @@ public class CLI {
         this.periodoLetivoService = new PeriodoLetivoService(new PeriodoLetivoRepository());
         this.turmaService = new TurmaService(new TurmaRepository(), usuarioService, disciplinaService);
         this.frequenciaService = new FrequenciaService(new FrequenciaRepository(), usuarioService, turmaService);
+        this.consultaFrequenciaService = new ConsultaFrequenciaService(
+                frequenciaService, turmaService, disciplinaService, usuarioService);
         this.scanner = new Scanner(System.in);
     }
 
@@ -202,6 +207,12 @@ public class CLI {
         // RF23 - Aluno acompanha matrícula e lista de espera
         if (usuarioLogado.getTipo() == TipoUsuario.ALUNO && opcao.equals("3")) {
             acompanharMatriculaEEspera();
+            return;
+        }
+
+        // RF29 - Aluno consulta sua frequência por disciplina
+        if (usuarioLogado.getTipo() == TipoUsuario.ALUNO && opcao.equals("4")) {
+            consultarFrequenciaPorDisciplina();
             return;
         }
 
@@ -712,6 +723,67 @@ public class CLI {
         } catch (IllegalArgumentException | IllegalStateException e) {
             System.out.println("Erro: " + e.getMessage());
         }
+    }
+
+    /**
+     * RF29 - Aluno consulta sua frequência por disciplina.
+     * Permite consultar uma disciplina específica ou todas as disciplinas em que o
+     * aluno possui frequência registrada.
+     */
+    private void consultarFrequenciaPorDisciplina() {
+        System.out.println("\n=== CONSULTAR FREQUÊNCIA (RF29) ===");
+        System.out.println("1. Consultar uma disciplina específica");
+        System.out.println("2. Consultar todas as minhas disciplinas");
+        System.out.println("0. Voltar");
+        System.out.print("Escolha: ");
+        String opcao = scanner.nextLine().trim();
+
+        switch (opcao) {
+            case "1" -> consultarFrequenciaDeUmaDisciplina();
+            case "2" -> consultarFrequenciaDeTodasDisciplinas();
+            case "0" -> System.out.println("Voltando ao menu.");
+            default -> System.out.println("Opção inválida.");
+        }
+    }
+
+    private void consultarFrequenciaDeUmaDisciplina() {
+        System.out.print("Código da disciplina: ");
+        String codigoDisciplina = scanner.nextLine().trim();
+
+        try {
+            FrequenciaDisciplina frequencia = consultaFrequenciaService
+                    .consultarPorDisciplina(usuarioLogado.getMatricula(), codigoDisciplina);
+            imprimirFrequencia(frequencia);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Erro: " + e.getMessage());
+        }
+    }
+
+    private void consultarFrequenciaDeTodasDisciplinas() {
+        try {
+            List<FrequenciaDisciplina> frequencias = consultaFrequenciaService
+                    .consultarTodasAsDisciplinas(usuarioLogado.getMatricula());
+            if (frequencias.isEmpty()) {
+                System.out.println("\nNenhuma frequência registrada nas suas disciplinas ainda.");
+                return;
+            }
+            System.out.println("\n📊 Frequência por disciplina:");
+            for (FrequenciaDisciplina frequencia : frequencias) {
+                imprimirFrequencia(frequencia);
+            }
+        } catch (IllegalArgumentException e) {
+            System.out.println("Erro: " + e.getMessage());
+        }
+    }
+
+    private void imprimirFrequencia(FrequenciaDisciplina frequencia) {
+        System.out.println("\n📘 " + frequencia.getCodigoDisciplina() + " - " + frequencia.getNomeDisciplina());
+        System.out.println("   Turmas consideradas: " + frequencia.getCodigosTurmas());
+        System.out.println("   Presenças: " + frequencia.getTotalPresencas() + "/" + frequencia.getTotalAulas());
+        System.out.println("   Faltas: " + frequencia.getTotalFaltas());
+        System.out.println("   Frequência: " + String.format("%.1f", frequencia.getPercentualFrequencia()) + "%");
+        System.out.println("   Situação (RN08): "
+                + (frequencia.atingiuFrequenciaMinima() ? "✅ frequência suficiente" : "❌ frequência insuficiente"));
     }
 
     /**
