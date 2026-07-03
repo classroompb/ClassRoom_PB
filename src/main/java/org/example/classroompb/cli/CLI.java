@@ -197,6 +197,12 @@ public class CLI {
             registrarFrequencia();
             return;
         }
+        
+        // RF28 - Professor consulta o percentual de frequência de um aluno
+        if (usuarioLogado.getTipo() == TipoUsuario.PROFESSOR && opcao.equals("3")) {
+            calcularPercentualFrequenciaAluno();
+            return;
+        }
 
         // RF16/RF21 - Aluno solicita matrícula (ou entra em fila se sem vagas)
         if (usuarioLogado.getTipo() == TipoUsuario.ALUNO && opcao.equals("2")) {
@@ -279,6 +285,25 @@ public class CLI {
             System.out.println("Erro: " + e.getMessage());
         }
     }
+    
+    
+    // RF28 - Professor consulta o percentual de frequência de um aluno em uma turma
+    private void calcularPercentualFrequenciaAluno() {
+        System.out.print("Código da turma: ");
+        String codigoTurma = scanner.nextLine().trim();
+        System.out.print("Matrícula do aluno: ");
+        String matriculaAluno = scanner.nextLine().trim();
+
+        try {
+            double percentual = frequenciaService.calcularPercentualFrequencia(codigoTurma, matriculaAluno);
+            String resumo = frequenciaService.gerarResumoFrequencia(codigoTurma, matriculaAluno);
+            System.out.println("\n" + resumo);
+            System.out.println("Percentual de frequência: " + String.format("%.1f", percentual) + "%");
+        } catch (IllegalArgumentException e) {
+            System.out.println("Erro: " + e.getMessage());
+        }
+    }
+    
 
     private void cadastrarDisciplina() {
     	 System.out.print("Código da disciplina:  ");
