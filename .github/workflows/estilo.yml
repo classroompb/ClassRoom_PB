@@ -1,0 +1,33 @@
+name: Estilo de codigo
+
+# Fase 3 do rollout (ver STYLE_GUIDE.md): verifica estilo em todo push/PR.
+# Fase 1 (atual): informativo — reporta mas NAO bloqueia o merge.
+# Para tornar obrigatorio: remova o 'continue-on-error' do Spotless, ligue
+# failOnViolation=true no Checkstyle (pom.xml) e proteja a branch no GitHub.
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+
+jobs:
+  estilo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Permissao de execucao do wrapper
+        run: chmod +x ./mvnw
+
+      - name: Checkstyle (linter)
+        run: ./mvnw -B checkstyle:check
+
+      - name: Spotless (formatacao)
+        continue-on-error: true
+        run: ./mvnw -B spotless:check
