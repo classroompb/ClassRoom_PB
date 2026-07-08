@@ -43,3 +43,8 @@ build/
 # Dados
 dados/*.dat
 dados/*.json
+### Runtime data (gerado pela aplicacao)
+dados/
+
+### IntelliJ (pasta inteira)
+.idea/
