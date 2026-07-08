@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+    "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+    "https://checkstyle.org/dtds/configuration_1_3.dtd">
+
+<!--
+  ClassRoomPB — Configuração do Checkstyle (Camada 2: Linter / "julgamento").
+
+  Princípio do Cap. 8 (Eng. de Software no Google): o LINTER não deve duplicar
+  o FORMATTER. Indentação, quebra de linha, espaços e chaves de posição são do
+  Spotless/google-java-format. Aqui ficam só as regras que a formatação não vê:
+  nomenclatura, imports e construções de risco. Cada regra tem um "porquê".
+-->
+<module name="Checker">
+    <property name="charset" value="UTF-8"/>
+    <property name="severity" value="warning"/>
+    <property name="fileExtensions" value="java"/>
+
+    <module name="TreeWalker">
+
+        <!-- NOMES (categoria 3 do capítulo: convenções de nomenclatura).
+             Por quê: nome previsível = código previsível para o time. -->
+        <module name="TypeName"/>            <!-- Classes/interfaces: PascalCase -->
+        <module name="MethodName"/>          <!-- Métodos: camelCase -->
+        <module name="MemberName"/>          <!-- Campos: camelCase -->
+        <module name="ParameterName"/>       <!-- Parâmetros: camelCase -->
+        <module name="LocalVariableName"/>   <!-- Variáveis locais: camelCase -->
+        <module name="ConstantName"/>        <!-- static final: UPPER_SNAKE_CASE -->
+        <module name="PackageName"/>
+
+        <!-- IMPORTS.
+             Por quê: import estrela esconde dependências e quebra análise
+             estática; import não usado/redundante é ruído. -->
+        <module name="AvoidStarImport"/>
+        <module name="UnusedImports"/>
+        <module name="RedundantImport"/>
+
+        <!-- CHAVES SEMPRE (regra opiniosa do capítulo).
+             Por quê: `if (x) faz();` sem chaves é fonte clássica de bug ao
+             adicionar uma segunda linha. Exigir { } sempre remove a decisão. -->
+        <module name="NeedBraces"/>
+        <module name="EmptyBlock">
+            <property name="option" value="text"/>
+        </module>
+
+        <!-- CONSTRUÇÕES DE RISCO (categoria 2: features a evitar).
+             Por quê: queda silenciosa entre cases e '==' em String são bugs
+             difíceis de ver em review. -->
+        <module name="FallThrough"/>
+        <module name="StringLiteralEquality"/>
+        <module name="OneStatementPerLine"/>
+        <module name="MissingSwitchDefault"/>
+
+    </module>
+</module>

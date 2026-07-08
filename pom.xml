@@ -45,6 +45,55 @@
                 <version>3.2.5</version>
             </plugin>
 
+            <!-- ===== Estilo de codigo (ver STYLE_GUIDE.md e CONTRIBUTING.md) ===== -->
+
+            <!-- Camada 1: Formatacao automatica (google-java-format, estilo AOSP / 4 espacos).
+                 Uso: ./mvnw spotless:apply (formata) | ./mvnw spotless:check (verifica). -->
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>2.43.0</version>
+                <configuration>
+                    <java>
+                        <googleJavaFormat>
+                            <version>1.22.0</version>
+                            <style>AOSP</style>
+                        </googleJavaFormat>
+                        <removeUnusedImports/>
+                    </java>
+                </configuration>
+                <!-- Fase 2: descomentar para tornar a checagem parte do 'verify' (build bloqueante). -->
+                <!--
+                <executions>
+                    <execution>
+                        <goals><goal>check</goal></goals>
+                    </execution>
+                </executions>
+                -->
+            </plugin>
+
+            <!-- Camada 2: Linter (Checkstyle) - config em config/checkstyle/checkstyle.xml.
+                 Uso: ./mvnw checkstyle:check. Fase 1: so avisa (failOnViolation=false). -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>3.3.1</version>
+                <configuration>
+                    <configLocation>config/checkstyle/checkstyle.xml</configLocation>
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                    <consoleOutput>true</consoleOutput>
+                    <failOnViolation>false</failOnViolation>
+                    <violationSeverity>warning</violationSeverity>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>10.17.0</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
             <!-- Cobertura com Emma -->
             <!-- TEMPORARIAMENTE DESABILITADO PARA TESTES COM JAVA 17 -->
             <!--
