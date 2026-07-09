@@ -1,17 +1,21 @@
 package org.example.classroompb.cli;
 
+import org.example.classroompb.model.Avaliacao;
 import org.example.classroompb.model.Curso;
 import org.example.classroompb.model.Disciplina;
 import org.example.classroompb.model.ItemListaEspera;
 import org.example.classroompb.model.PeriodoLetivo;
+import org.example.classroompb.model.SituacaoFinal;
 import org.example.classroompb.model.TipoUsuario;
 import org.example.classroompb.model.Turma;
 import org.example.classroompb.model.Usuario;
+import org.example.classroompb.repository.AvaliacaoRepository;
 import org.example.classroompb.repository.CursoRepository;
 import org.example.classroompb.repository.UsuarioRepository;
 import org.example.classroompb.repository.DisciplinaRepository;
 import org.example.classroompb.repository.PeriodoLetivoRepository;
 import org.example.classroompb.repository.TurmaRepository;
+import org.example.classroompb.service.AvaliacaoService;
 import org.example.classroompb.service.CursoService;
 import org.example.classroompb.service.UsuarioService;
 import org.example.classroompb.service.DisciplinaService;
@@ -28,6 +32,7 @@ public class CLI {
     private final DisciplinaService disciplinaService;
     private final PeriodoLetivoService periodoLetivoService;
     private final TurmaService turmaService;
+    private final AvaliacaoService avaliacaoService;
     private final Scanner scanner;
     private Usuario usuarioLogado;
 
@@ -37,6 +42,7 @@ public class CLI {
         this.disciplinaService = new DisciplinaService(new DisciplinaRepository());
         this.periodoLetivoService = new PeriodoLetivoService(new PeriodoLetivoRepository());
         this.turmaService = new TurmaService(new TurmaRepository(), usuarioService, disciplinaService);
+        this.avaliacaoService = new AvaliacaoService(new AvaliacaoRepository(), turmaService);
         this.scanner = new Scanner(System.in);
     }
 
@@ -195,6 +201,18 @@ public class CLI {
         // RF22/RF23 - Aluno cancela matrícula (com validação de prazo)
         if (usuarioLogado.getTipo() == TipoUsuario.ALUNO && opcao.equals("6")) {
             cancelarMatriculaEmTurma();
+            return;
+        }
+
+        // RF31 - Professor lança notas dos alunos de uma turma
+        if (usuarioLogado.getTipo() == TipoUsuario.PROFESSOR && opcao.equals("3")) {
+            lancarNotas();
+            return;
+        }
+
+        // RF32/RF33 - Professor acompanha alunos (média e situação final)
+        if (usuarioLogado.getTipo() == TipoUsuario.PROFESSOR && opcao.equals("4")) {
+            acompanharAlunos();
             return;
         }
 
@@ -706,6 +724,122 @@ public class CLI {
         }
 
         return String.format("%02d:%02d", hora, minuto);
+    }
+
+    /**
+     * RF31 - O professor lança as notas dos alunos de uma turma sua. Percorre os alunos
+     * matriculados e registra a nota informada para cada um (Enter pula o aluno).
+     */
+    private void lancarNotas() {
+        List<Turma> turmas = turmaService.listarTurmasPorProfessor(usuarioLogado.getMatricula());
+        if (turmas.isEmpty()) {
+            System.out.println("Você não é responsável por nenhuma turma.");
+            return;
+        }
+
+        System.out.println("\nSuas turmas:");
+        for (Turma t : turmas) {
+            System.out.println("   " + t.getCodigo() + " - " + t.getDisciplina().getNome()
+                    + " (" + t.getTotalMatriculados() + " aluno(s))");
+        }
+
+        System.out.print("Código da turma: ");
+        String codigoTurma = scanner.nextLine().trim();
+
+        Turma turma = turmaService.buscarPorCodigo(codigoTurma);
+        if (turma == null) {
+            System.out.println("Erro: Turma não encontrada.");
+            return;
+        }
+        if (!turma.getProfessor().getMatricula().equalsIgnoreCase(usuarioLogado.getMatricula())) {
+            System.out.println("Erro: você não é o professor responsável por esta turma.");
+            return;
+        }
+
+        List<String> alunos = turma.getAlunoMatriculados();
+        if (alunos.isEmpty()) {
+            System.out.println("Nenhum aluno matriculado nesta turma.");
+            return;
+        }
+
+        System.out.println("\nDigite a nota de cada aluno (0 a 10, Enter para pular):");
+        for (String matricula : alunos) {
+            Usuario aluno = usuarioService.buscarPorMatricula(matricula);
+            String nome = (aluno != null) ? aluno.getNome() : matricula;
+            System.out.print("   " + nome + " (" + matricula + "): ");
+            String entrada = scanner.nextLine().trim();
+            if (entrada.isEmpty()) {
+                continue;
+            }
+            try {
+                double nota = Double.parseDouble(entrada.replace(",", "."));
+                avaliacaoService.lancarNota(codigoTurma, matricula, nota);
+                System.out.println("      Nota " + nota + " lançada.");
+            } catch (NumberFormatException e) {
+                System.out.println("      Erro: nota inválida.");
+            } catch (IllegalArgumentException e) {
+                System.out.println("      Erro: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * RF32/RF33 - O professor acompanha os alunos de uma turma: exibe as notas e a média
+     * calculada (RF32) e, informada a frequência, define a situação final (RF33).
+     */
+    private void acompanharAlunos() {
+        System.out.print("\nCódigo da turma: ");
+        String codigoTurma = scanner.nextLine().trim();
+
+        Turma turma = turmaService.buscarPorCodigo(codigoTurma);
+        if (turma == null) {
+            System.out.println("Erro: Turma não encontrada.");
+            return;
+        }
+        if (!turma.getProfessor().getMatricula().equalsIgnoreCase(usuarioLogado.getMatricula())) {
+            System.out.println("Erro: você não é o professor responsável por esta turma.");
+            return;
+        }
+
+        List<String> alunos = turma.getAlunoMatriculados();
+        if (alunos.isEmpty()) {
+            System.out.println("Nenhum aluno matriculado nesta turma.");
+            return;
+        }
+
+        System.out.println("\n=== Acompanhamento — " + turma.getDisciplina().getNome()
+                + " (" + codigoTurma + ") ===");
+        for (String matricula : alunos) {
+            Usuario aluno = usuarioService.buscarPorMatricula(matricula);
+            String nome = (aluno != null) ? aluno.getNome() : matricula;
+            Avaliacao avaliacao = avaliacaoService.buscarAvaliacao(codigoTurma, matricula);
+
+            System.out.println("\n" + nome + " (" + matricula + "):");
+            if (avaliacao == null || avaliacao.getNotas().isEmpty()) {
+                System.out.println("   Sem notas lançadas.");
+                continue;
+            }
+
+            System.out.println("   Notas: " + avaliacao.getNotas());
+            System.out.printf("   Média (RF32): %.2f%n",
+                    avaliacaoService.calcularMedia(codigoTurma, matricula));
+
+            System.out.print("   Frequência (%) para definir a situação [Enter para pular]: ");
+            String entrada = scanner.nextLine().trim();
+            if (entrada.isEmpty()) {
+                continue;
+            }
+            try {
+                double frequencia = Double.parseDouble(entrada.replace(",", "."));
+                avaliacaoService.registrarFrequencia(codigoTurma, matricula, frequencia);
+                SituacaoFinal situacao = avaliacaoService.definirSituacaoFinal(codigoTurma, matricula);
+                System.out.println("   Situação final (RF33): " + situacao);
+            } catch (NumberFormatException e) {
+                System.out.println("   Erro: frequência inválida.");
+            } catch (IllegalArgumentException e) {
+                System.out.println("   Erro: " + e.getMessage());
+            }
+        }
     }
 
     public static void main(String[] args) {
