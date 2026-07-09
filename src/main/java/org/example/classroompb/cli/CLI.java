@@ -24,6 +24,7 @@ import org.example.classroompb.service.TurmaService;
 
 import java.util.List;
 import java.util.Scanner;
+import java.util.function.Predicate;
 
 public class CLI {
 
@@ -95,22 +96,108 @@ public class CLI {
     }
 
     private void cadastrar() {
-        System.out.print("Tipo (ALUNO/PROFESSOR/COORDENADOR/ADMINISTRADOR): ");
-        String tipo = scanner.nextLine().trim();
-        System.out.print("Nome: ");
-        String nome = scanner.nextLine().trim();
-        System.out.print("Matrícula: ");
-        String matricula = scanner.nextLine().trim();
-        System.out.print("Email: ");
-        String email = scanner.nextLine().trim();
-        System.out.print("Senha: ");
-        String senha = scanner.nextLine().trim();
+        System.out.println("(digite 0 em qualquer campo para cancelar)");
+
+        String tipo = lerTipoUsuario();
+        if (tipo == null) { System.out.println("Cadastro cancelado."); return; }
+
+        String nome = lerCampo("Nome: ", v -> !v.isBlank(), "Nome não pode ser vazio.");
+        if (nome == null) { System.out.println("Cadastro cancelado."); return; }
+
+        String matricula = lerCampo("Matrícula: ",
+                v -> !v.isBlank() && !usuarioService.matriculaJaExiste(v),
+                "Matrícula vazia ou já cadastrada.");
+        if (matricula == null) { System.out.println("Cadastro cancelado."); return; }
+
+        String email = lerCampo("Email: ",
+                v -> v.contains("@") && !usuarioService.emailJaExiste(v),
+                "Email inválido (precisa de @) ou já cadastrado.");
+        if (email == null) { System.out.println("Cadastro cancelado."); return; }
+
+        String senha = lerCampo("Senha: ",
+                v -> v.length() >= 4, "Senha deve ter no mínimo 4 caracteres.");
+        if (senha == null) { System.out.println("Cadastro cancelado."); return; }
 
         try {
             Usuario u = usuarioService.cadastrar(tipo, nome, matricula, email, senha);
             System.out.println("Usuário cadastrado com sucesso: " + u);
         } catch (IllegalArgumentException e) {
             System.out.println("Erro: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Lê um campo repetindo o prompt até o valor passar na validação, para que um dado
+     * inválido não descarte o que já foi preenchido. Retorna null se o usuário digitar "0"
+     * (cancela o cadastro).
+     */
+    private String lerCampo(String rotulo, Predicate<String> valido, String msgErro) {
+        while (true) {
+            System.out.print(rotulo);
+            String valor = scanner.nextLine().trim();
+            if (valor.equals("0")) {
+                return null;
+            }
+            if (valido.test(valor)) {
+                return valor;
+            }
+            System.out.println("  " + msgErro);
+        }
+    }
+
+    /**
+     * Lê um número inteiro repetindo o prompt até ser válido (não trava com texto). Retorna null
+     * se o usuário digitar "0" (cancela).
+     */
+    private Integer lerInteiro(String rotulo, java.util.function.IntPredicate valido, String msgErro) {
+        while (true) {
+            System.out.print(rotulo);
+            String valor = scanner.nextLine().trim();
+            if (valor.equals("0")) {
+                return null;
+            }
+            try {
+                int numero = Integer.parseInt(valor);
+                if (valido.test(numero)) {
+                    return numero;
+                }
+                System.out.println("  " + msgErro);
+            } catch (NumberFormatException e) {
+                System.out.println("  Digite um número inteiro válido.");
+            }
+        }
+    }
+
+    /**
+     * Lê o tipo de usuário aceitando o número (1-4) ou o nome. Acelera o cadastro sem obrigar a
+     * digitar a palavra inteira. Retorna o tipo canônico, ou null se cancelar (0).
+     */
+    private String lerTipoUsuario() {
+        String entrada = lerCampo(
+                "Tipo — 1) ALUNO  2) PROFESSOR  3) COORDENADOR  4) ADMINISTRADOR: ",
+                v -> resolverTipo(v) != null,
+                "Tipo inválido. Digite 1-4 ou o nome (ALUNO/PROFESSOR/COORDENADOR/ADMINISTRADOR).");
+        return (entrada == null) ? null : resolverTipo(entrada);
+    }
+
+    /** Converte "1".."4" ou o nome do perfil no tipo canônico; null se não reconhecer. */
+    private String resolverTipo(String valor) {
+        return switch (valor.toUpperCase()) {
+            case "1", "ALUNO" -> "ALUNO";
+            case "2", "PROFESSOR" -> "PROFESSOR";
+            case "3", "COORDENADOR" -> "COORDENADOR";
+            case "4", "ADMINISTRADOR" -> "ADMINISTRADOR";
+            default -> null;
+        };
+    }
+
+    /** Valida o formato do horário (HH:mm-HH:mm) reusando a normalização, sem lançar. */
+    private boolean horarioValido(String horario) {
+        try {
+            normalizarHorario(horario);
+            return true;
+        } catch (RuntimeException e) {
+            return false;
         }
     }
 
@@ -220,10 +307,15 @@ public class CLI {
     }
 
     private void cadastrarCurso() {
-        System.out.print("Código do curso: ");
-        String codigo = scanner.nextLine().trim();
-        System.out.print("Nome do curso: ");
-        String nome = scanner.nextLine().trim();
+        System.out.println("(digite 0 em qualquer campo para cancelar)");
+
+        String codigo = lerCampo("Código do curso: ",
+                v -> !v.isBlank() && !cursoService.codigoJaExiste(v),
+                "Código vazio ou já cadastrado.");
+        if (codigo == null) { System.out.println("Cadastro cancelado."); return; }
+
+        String nome = lerCampo("Nome do curso: ", v -> !v.isBlank(), "Nome não pode ser vazio.");
+        if (nome == null) { System.out.println("Cadastro cancelado."); return; }
 
         try {
             Curso c = cursoService.cadastrar(codigo, nome);
@@ -234,31 +326,41 @@ public class CLI {
     }
     
     private void cadastrarDisciplina() {
-    	 System.out.print("Código da disciplina:  ");
-         String codigo = scanner.nextLine().trim();
-         System.out.print("Nome da disciplina:  ");
-         String nome = scanner.nextLine().trim();
-         System.out.print("Carga horária da disciplina:  ");
-         int cargaHora = Integer.parseInt(scanner.nextLine().trim());
-         System.out.print("Créditos da disciplina:  ");
-         int creditos = Integer.parseInt(scanner.nextLine().trim());
-         System.out.println();
-         try {
-        	 disciplinaService.cadastrar(codigo, nome, cargaHora, creditos);
-        	 System.out.println("Disciplina cadastrada com sucesso.");
-         } catch (IllegalArgumentException e) {
-        	 System.out.println("Erro: " + e.getMessage());
-         }
-         
-         System.out.println();
-         System.out.println();
+        System.out.println("(digite 0 em qualquer campo para cancelar)");
+
+        String codigo = lerCampo("Código da disciplina: ",
+                v -> !v.isBlank() && !disciplinaService.jaExiste(v),
+                "Código vazio ou já cadastrado.");
+        if (codigo == null) { System.out.println("Cadastro cancelado."); return; }
+
+        String nome = lerCampo("Nome da disciplina: ", v -> !v.isBlank(), "Nome não pode ser vazio.");
+        if (nome == null) { System.out.println("Cadastro cancelado."); return; }
+
+        Integer cargaHora = lerInteiro("Carga horária: ", n -> n > 0,
+                "Carga horária deve ser maior que zero.");
+        if (cargaHora == null) { System.out.println("Cadastro cancelado."); return; }
+
+        Integer creditos = lerInteiro("Créditos: ", n -> n > 0, "Créditos deve ser maior que zero.");
+        if (creditos == null) { System.out.println("Cadastro cancelado."); return; }
+
+        try {
+            disciplinaService.cadastrar(codigo, nome, cargaHora, creditos);
+            System.out.println("Disciplina cadastrada com sucesso.");
+        } catch (IllegalArgumentException e) {
+            System.out.println("Erro: " + e.getMessage());
+        }
     }
 
     private void adicionarPreRequisito() {
-        System.out.print("Código da disciplina: ");
-        String codigoDisciplina = scanner.nextLine().trim();
-        System.out.print("Código da disciplina pré-requisito: ");
-        String codigoPreRequisito = scanner.nextLine().trim();
+        System.out.println("(digite 0 em qualquer campo para cancelar)");
+
+        String codigoDisciplina = lerCampo("Código da disciplina: ",
+                v -> disciplinaService.jaExiste(v), "Disciplina não encontrada.");
+        if (codigoDisciplina == null) { System.out.println("Operação cancelada."); return; }
+
+        String codigoPreRequisito = lerCampo("Código da disciplina pré-requisito: ",
+                v -> disciplinaService.jaExiste(v), "Disciplina pré-requisito não encontrada.");
+        if (codigoPreRequisito == null) { System.out.println("Operação cancelada."); return; }
 
         try {
             disciplinaService.adicionarPreRequisito(codigoDisciplina, codigoPreRequisito);
@@ -269,48 +371,52 @@ public class CLI {
     }
 
     private void ofertarTurma() {
-        System.out.print("Código da disciplina: ");
-        String codigoDisciplina = scanner.nextLine().trim();
-        System.out.print("Matrícula do professor: ");
-        String matriculaProfessor = scanner.nextLine().trim();
-        System.out.print("Identificador do período letivo (ex: 2026.1): ");
-        String identificadorPeriodo = scanner.nextLine().trim();
-        System.out.print("Limite de vagas: ");
-        String limiteTexto = scanner.nextLine().trim();
-        System.out.print("Horário (ex: 08:00-10:00): ");
-        String horario = scanner.nextLine().trim();
-        System.out.print("Sala: ");
-        String sala = scanner.nextLine().trim();
+        System.out.println("(digite 0 em qualquer campo para cancelar)");
+
+        String codigoDisciplina = lerCampo("Código da disciplina: ",
+                v -> disciplinaService.jaExiste(v), "Disciplina não encontrada.");
+        if (codigoDisciplina == null) { System.out.println("Operação cancelada."); return; }
+
+        String matriculaProfessor = lerCampo("Matrícula do professor: ",
+                v -> {
+                    Usuario u = usuarioService.buscarPorMatricula(v);
+                    return u != null && u.getTipo() == TipoUsuario.PROFESSOR;
+                },
+                "Professor não encontrado (matrícula inexistente ou não é professor).");
+        if (matriculaProfessor == null) { System.out.println("Operação cancelada."); return; }
+
+        String identificadorPeriodo = lerCampo("Identificador do período letivo (ex: 2026.1): ",
+                v -> periodoLetivoService.jaExiste(v), "Período letivo não encontrado.");
+        if (identificadorPeriodo == null) { System.out.println("Operação cancelada."); return; }
+
+        Integer limiteVagas = lerInteiro("Limite de vagas: ", n -> n > 0,
+                "Limite de vagas deve ser maior que zero.");
+        if (limiteVagas == null) { System.out.println("Operação cancelada."); return; }
+
+        String horario = lerCampo("Horário (ex: 08:00-10:00): ", this::horarioValido,
+                "Horário inválido. Use HH:mm-HH:mm (ex: 08:00-10:00).");
+        if (horario == null) { System.out.println("Operação cancelada."); return; }
+
+        String sala = lerCampo("Sala: ", v -> !v.isBlank(), "Sala não pode ser vazia.");
+        if (sala == null) { System.out.println("Operação cancelada."); return; }
 
         try {
-            int limiteVagas = Integer.parseInt(limiteTexto);
             PeriodoLetivo periodo = periodoLetivoService.buscarPorIdentificador(identificadorPeriodo);
-            if (periodo == null) {
-                throw new IllegalArgumentException("Período letivo não encontrado: " + identificadorPeriodo);
-            }
-
-            // Normalizar formato do horário (ex: 8:00-10:00 → 08:00-10:00)
-            String horarioNormalizado = normalizarHorario(horario);
-
-            Turma turma = turmaService.ofertarTurma(
-                    codigoDisciplina,
-                    matriculaProfessor,
-                    periodo,
-                    limiteVagas,
-                    horarioNormalizado,
-                    sala
-            );
+            Turma turma = turmaService.ofertarTurma(codigoDisciplina, matriculaProfessor, periodo,
+                    limiteVagas, normalizarHorario(horario), sala);
             System.out.println("Turma ofertada com sucesso: " + turma);
-        } catch (NumberFormatException e) {
-            System.out.println("Erro: limite de vagas deve ser um número inteiro.");
         } catch (IllegalArgumentException e) {
             System.out.println("Erro: " + e.getMessage());
         }
     }
 
     private void cadastrarPeriodoLetivo() {
-        System.out.print("Identificador do período letivo (ex: 2026.1): ");
-        String identificador = scanner.nextLine().trim();
+        System.out.println("(digite 0 para cancelar)");
+
+        String identificador = lerCampo("Identificador do período letivo (ex: 2026.1): ",
+                v -> !v.isBlank() && !periodoLetivoService.jaExiste(v),
+                "Identificador vazio ou já cadastrado.");
+        if (identificador == null) { System.out.println("Cadastro cancelado."); return; }
 
         try {
             PeriodoLetivo periodo = periodoLetivoService.cadastrar(identificador);
