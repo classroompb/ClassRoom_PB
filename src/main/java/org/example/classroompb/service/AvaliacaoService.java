@@ -1,6 +1,5 @@
 package org.example.classroompb.service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.example.classroompb.model.Avaliacao;
@@ -52,9 +51,12 @@ public class AvaliacaoService {
         Avaliacao avaliacao = exigirAvaliacao(codigoTurma, matriculaAluno);
         if (avaliacao.getNotas().isEmpty()) {
             throw new IllegalArgumentException(
-                    "Não há notas lançadas para definir a situação final do aluno " + matriculaAluno + ".");
+                    "Não há notas lançadas para definir a situação final do aluno "
+                            + matriculaAluno
+                            + ".");
         }
-        SituacaoFinal situacao = calcularSituacao(avaliacao.calcularMedia(), avaliacao.getFrequencia());
+        SituacaoFinal situacao =
+                calcularSituacao(avaliacao.calcularMedia(), avaliacao.getFrequencia());
         avaliacao.setSituacao(situacao);
         repository.salvarTodos(avaliacoes);
         return situacao;
@@ -76,8 +78,10 @@ public class AvaliacaoService {
 
     public Avaliacao buscarAvaliacao(String codigoTurma, String matriculaAluno) {
         return avaliacoes.stream()
-                .filter(a -> a.getCodigoTurma().equalsIgnoreCase(codigoTurma)
-                        && a.getMatriculaAluno().equalsIgnoreCase(matriculaAluno))
+                .filter(
+                        a ->
+                                a.getCodigoTurma().equalsIgnoreCase(codigoTurma)
+                                        && a.getMatriculaAluno().equalsIgnoreCase(matriculaAluno))
                 .findFirst()
                 .orElse(null);
     }
@@ -92,7 +96,11 @@ public class AvaliacaoService {
         Avaliacao avaliacao = buscarAvaliacao(codigoTurma, matriculaAluno);
         if (avaliacao == null) {
             throw new IllegalArgumentException(
-                    "Não há avaliação lançada para o aluno " + matriculaAluno + " na turma " + codigoTurma + ".");
+                    "Não há avaliação lançada para o aluno "
+                            + matriculaAluno
+                            + " na turma "
+                            + codigoTurma
+                            + ".");
         }
         return avaliacao;
     }
@@ -104,7 +112,11 @@ public class AvaliacaoService {
         }
         if (!turma.alunoJaMatriculado(matriculaAluno)) {
             throw new IllegalArgumentException(
-                    "Aluno " + matriculaAluno + " não está matriculado na turma " + codigoTurma + ".");
+                    "Aluno "
+                            + matriculaAluno
+                            + " não está matriculado na turma "
+                            + codigoTurma
+                            + ".");
         }
         Avaliacao avaliacao = buscarAvaliacao(codigoTurma, matriculaAluno);
         if (avaliacao == null) {

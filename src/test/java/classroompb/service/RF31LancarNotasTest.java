@@ -111,7 +111,8 @@ class RF31LancarNotasTest {
         var usuarioService = new UsuarioService(new UsuarioRepositorioFake());
         var disciplinaService = new DisciplinaService(new DisciplinaRepositorioFake());
         var periodoLetivoService = new PeriodoLetivoService(new PeriodoLetivoRepositorioFake());
-        turmaService = new TurmaService(new TurmaRepositorioFake(), usuarioService, disciplinaService);
+        turmaService =
+                new TurmaService(new TurmaRepositorioFake(), usuarioService, disciplinaService);
         avaliacaoService = new AvaliacaoService(new AvaliacaoRepositorioFake(), turmaService);
 
         usuarioService.cadastrar("PROFESSOR", "Prof. Ana", "P001", "ana@example.com", "1234");

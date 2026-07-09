@@ -116,7 +116,8 @@ class RF33SituacaoFinalTest {
         var usuarioService = new UsuarioService(new UsuarioRepositorioFake());
         var disciplinaService = new DisciplinaService(new DisciplinaRepositorioFake());
         var periodoLetivoService = new PeriodoLetivoService(new PeriodoLetivoRepositorioFake());
-        turmaService = new TurmaService(new TurmaRepositorioFake(), usuarioService, disciplinaService);
+        turmaService =
+                new TurmaService(new TurmaRepositorioFake(), usuarioService, disciplinaService);
         avaliacaoService = new AvaliacaoService(new AvaliacaoRepositorioFake(), turmaService);
 
         usuarioService.cadastrar("PROFESSOR", "Prof. Ana", "P001", "ana@example.com", "1234");
@@ -202,13 +203,15 @@ class RF33SituacaoFinalTest {
     @Test
     void faixaExata4RecuperaEFaixa39ReprovaPorNota() {
         assertEquals(SituacaoFinal.RECUPERACAO, avaliacaoService.calcularSituacao(4.0, 80.0));
-        assertEquals(SituacaoFinal.REPROVADO_POR_NOTA, avaliacaoService.calcularSituacao(3.9, 80.0));
+        assertEquals(
+                SituacaoFinal.REPROVADO_POR_NOTA, avaliacaoService.calcularSituacao(3.9, 80.0));
     }
 
     @Test
     void frequenciaExata75NaoReprovaPorFalta() {
         // RN08: 75% é o mínimo para aprovação, então 75% com média alta aprova.
         assertEquals(SituacaoFinal.APROVADO, avaliacaoService.calcularSituacao(8.0, 75.0));
-        assertEquals(SituacaoFinal.REPROVADO_POR_FALTA, avaliacaoService.calcularSituacao(8.0, 74.9));
+        assertEquals(
+                SituacaoFinal.REPROVADO_POR_FALTA, avaliacaoService.calcularSituacao(8.0, 74.9));
     }
 }
