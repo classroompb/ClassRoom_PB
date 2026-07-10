@@ -1,5 +1,9 @@
 package classroompb.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.ArrayList;
+import java.util.List;
 import org.example.classroompb.model.Disciplina;
 import org.example.classroompb.model.PeriodoLetivo;
 import org.example.classroompb.model.Turma;
@@ -13,25 +17,18 @@ import org.example.classroompb.service.PeriodoLetivoService;
 import org.example.classroompb.service.TurmaService;
 import org.example.classroompb.service.UsuarioService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 
 /**
  * RF23: O sistema deve manter lista de espera por turma.
- * 
- * Este requisito assegura que:
- * 1. A lista de espera é mantida por turma (não globalmente)
- * 2. A ordem dos alunos na fila é preservada
- * 3. Alunos podem ser consultados sobre sua posição
- * 4. A promoção automática ocorre quando há cancelamentos
- * 5. O sistema permite gerenciamento completo da lista
+ *
+ * <p>Este requisito assegura que: 1. A lista de espera é mantida por turma (não globalmente) 2. A
+ * ordem dos alunos na fila é preservada 3. Alunos podem ser consultados sobre sua posição 4. A
+ * promoção automática ocorre quando há cancelamentos 5. O sistema permite gerenciamento completo da
+ * lista
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class RF23ListaEsperaManutencaoTest {
@@ -44,26 +41,62 @@ class RF23ListaEsperaManutencaoTest {
 
     static class TurmaRepositorioFake extends TurmaRepository {
         private final List<Turma> lista = new ArrayList<>();
-        @Override public List<Turma> carregarTodos() { return new ArrayList<>(lista); }
-        @Override public void salvarTodos(List<Turma> turmas) { lista.clear(); lista.addAll(turmas); }
+
+        @Override
+        public List<Turma> carregarTodos() {
+            return new ArrayList<>(lista);
+        }
+
+        @Override
+        public void salvarTodos(List<Turma> turmas) {
+            lista.clear();
+            lista.addAll(turmas);
+        }
     }
 
     static class UsuarioRepositorioFake extends UsuarioRepository {
         private final List<Usuario> lista = new ArrayList<>();
-        @Override public List<Usuario> carregarTodos() { return new ArrayList<>(lista); }
-        @Override public void salvarTodos(List<Usuario> usuarios) { lista.clear(); lista.addAll(usuarios); }
+
+        @Override
+        public List<Usuario> carregarTodos() {
+            return new ArrayList<>(lista);
+        }
+
+        @Override
+        public void salvarTodos(List<Usuario> usuarios) {
+            lista.clear();
+            lista.addAll(usuarios);
+        }
     }
 
     static class DisciplinaRepositorioFake extends DisciplinaRepository {
         private final List<Disciplina> lista = new ArrayList<>();
-        @Override public List<Disciplina> carregarTodos() { return new ArrayList<>(lista); }
-        @Override public void salvarTodos(List<Disciplina> disciplinas) { lista.clear(); lista.addAll(disciplinas); }
+
+        @Override
+        public List<Disciplina> carregarTodos() {
+            return new ArrayList<>(lista);
+        }
+
+        @Override
+        public void salvarTodos(List<Disciplina> disciplinas) {
+            lista.clear();
+            lista.addAll(disciplinas);
+        }
     }
 
     static class PeriodoLetivoRepositorioFake extends PeriodoLetivoRepository {
         private final List<PeriodoLetivo> lista = new ArrayList<>();
-        @Override public List<PeriodoLetivo> carregarTodos() { return new ArrayList<>(lista); }
-        @Override public void salvarTodos(List<PeriodoLetivo> periodos) { lista.clear(); lista.addAll(periodos); }
+
+        @Override
+        public List<PeriodoLetivo> carregarTodos() {
+            return new ArrayList<>(lista);
+        }
+
+        @Override
+        public void salvarTodos(List<PeriodoLetivo> periodos) {
+            lista.clear();
+            lista.addAll(periodos);
+        }
     }
 
     @BeforeEach
@@ -96,8 +129,10 @@ class RF23ListaEsperaManutencaoTest {
     @Order(1)
     void deveManterListaDeEsperaIndependentePorTurma() {
         // Arrange: Criar 2 turmas da mesma disciplina com 1 vaga cada
-        Turma turma1 = turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
-        Turma turma2 = turmaService.ofertarTurma("CC101", "P001", periodo, 1, "10:00-12:00", "Sala A2");
+        Turma turma1 =
+                turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
+        Turma turma2 =
+                turmaService.ofertarTurma("CC101", "P001", periodo, 1, "10:00-12:00", "Sala A2");
 
         // Act: Matricular em T1, colocar A002 e A003 na fila de T1
         turmaService.solicitarMatricula(turma1.getCodigo(), "A001");
@@ -127,7 +162,8 @@ class RF23ListaEsperaManutencaoTest {
     @Order(2)
     void deveConsultarPosicaoAlunoNaFila() {
         // Arrange: Turma com 1 vaga, 3 alunos na fila
-        Turma turma = turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
+        Turma turma =
+                turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
         turmaService.solicitarMatricula(turma.getCodigo(), "A001"); // Matriculado
         turmaService.solicitarMatricula(turma.getCodigo(), "A002"); // Fila posição 1
         turmaService.solicitarMatricula(turma.getCodigo(), "A003"); // Fila posição 2
@@ -137,15 +173,21 @@ class RF23ListaEsperaManutencaoTest {
         assertEquals(1, turmaService.obterPosicaoEmEspera(turma.getCodigo(), "A002"));
         assertEquals(2, turmaService.obterPosicaoEmEspera(turma.getCodigo(), "A003"));
         assertEquals(3, turmaService.obterPosicaoEmEspera(turma.getCodigo(), "A004"));
-        assertEquals(-1, turmaService.obterPosicaoEmEspera(turma.getCodigo(), "A001")); // Matriculado, não está na fila
-        assertEquals(-1, turmaService.obterPosicaoEmEspera(turma.getCodigo(), "A005")); // Não está na turma
+        assertEquals(
+                -1,
+                turmaService.obterPosicaoEmEspera(
+                        turma.getCodigo(), "A001")); // Matriculado, não está na fila
+        assertEquals(
+                -1,
+                turmaService.obterPosicaoEmEspera(turma.getCodigo(), "A005")); // Não está na turma
     }
 
     @Test
     @Order(3)
     void devePromoverAutomaticamentePrimeiroAlunoAoCancelarMatricula() {
         // Arrange: Turma com 1 vaga, A001 matriculado, A002-A004 na fila
-        Turma turma = turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
+        Turma turma =
+                turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
         turmaService.solicitarMatricula(turma.getCodigo(), "A001");
         turmaService.solicitarMatricula(turma.getCodigo(), "A002");
         turmaService.solicitarMatricula(turma.getCodigo(), "A003");
@@ -156,7 +198,9 @@ class RF23ListaEsperaManutencaoTest {
 
         // Assert: A002 foi promovido automaticamente
         Turma turmaAtualizada = turmaService.obterTurma(turma.getCodigo());
-        assertTrue(turmaAtualizada.alunoJaMatriculado("A002"), "A002 deve estar matriculado após promoção");
+        assertTrue(
+                turmaAtualizada.alunoJaMatriculado("A002"),
+                "A002 deve estar matriculado após promoção");
         assertEquals(2, turmaAtualizada.getTotalEmEspera(), "Devem restar 2 alunos na fila");
         assertEquals("A003", turmaAtualizada.getAlunosEmEspera().get(0));
         assertEquals("A004", turmaAtualizada.getAlunosEmEspera().get(1));
@@ -166,7 +210,8 @@ class RF23ListaEsperaManutencaoTest {
     @Order(4)
     void devePromoverEmCadeiaSucessivos() {
         // Arrange: Turma com 1 vaga, 4 alunos na fila
-        Turma turma = turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
+        Turma turma =
+                turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
         turmaService.solicitarMatricula(turma.getCodigo(), "A001");
         turmaService.solicitarMatricula(turma.getCodigo(), "A002");
         turmaService.solicitarMatricula(turma.getCodigo(), "A003");
@@ -196,7 +241,8 @@ class RF23ListaEsperaManutencaoTest {
     @Order(5)
     void deveRemoverAlunoManualmenteDaListaDeEspera() {
         // Arrange: Turma com 4 alunos na fila
-        Turma turma = turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
+        Turma turma =
+                turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
         turmaService.solicitarMatricula(turma.getCodigo(), "A001"); // Matriculado
         turmaService.solicitarMatricula(turma.getCodigo(), "A002"); // Fila posição 1
         turmaService.solicitarMatricula(turma.getCodigo(), "A003"); // Fila posição 2
@@ -219,7 +265,8 @@ class RF23ListaEsperaManutencaoTest {
     @Order(6)
     void deveManterApenasUmaVezPorTurma() {
         // Arrange: Turma cheia
-        Turma turma = turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
+        Turma turma =
+                turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
         turmaService.solicitarMatricula(turma.getCodigo(), "A001");
 
         // Act & Assert: A002 entra na fila
@@ -227,8 +274,9 @@ class RF23ListaEsperaManutencaoTest {
         assertEquals(1, turmaService.consultarQuantidadeEmEspera(turma.getCodigo()));
 
         // Act & Assert: A002 não pode entrar de novo
-        assertThrows(IllegalArgumentException.class, () ->
-                turmaService.solicitarMatricula(turma.getCodigo(), "A002"),
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> turmaService.solicitarMatricula(turma.getCodigo(), "A002"),
                 "Aluno já está em lista de espera. (RF21)");
     }
 
@@ -236,7 +284,8 @@ class RF23ListaEsperaManutencaoTest {
     @Order(7)
     void deveManterHistoricoCorretoAposPersistencia() {
         // Arrange: Criar turma e operações
-        Turma turma = turmaService.ofertarTurma("CC101", "P001", periodo, 2, "08:00-10:00", "Sala A1");
+        Turma turma =
+                turmaService.ofertarTurma("CC101", "P001", periodo, 2, "08:00-10:00", "Sala A1");
         turmaService.solicitarMatricula(turma.getCodigo(), "A001");
         turmaService.solicitarMatricula(turma.getCodigo(), "A002");
         turmaService.solicitarMatricula(turma.getCodigo(), "A003");
@@ -254,11 +303,15 @@ class RF23ListaEsperaManutencaoTest {
     @Order(8)
     void deveValidarLimitesDeListaEspera() {
         // Arrange: Turma com 1 vaga e múltiplos alunos na fila
-        Turma turma = turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
+        Turma turma =
+                turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
 
         // Act: Tentar criar turma com 0 vagas deve falhar
-        assertThrows(IllegalArgumentException.class, () ->
-                turmaService.ofertarTurma("CC101", "P001", periodo, 0, "08:00-10:00", "Sala B1"),
+        assertThrows(
+                IllegalArgumentException.class,
+                () ->
+                        turmaService.ofertarTurma(
+                                "CC101", "P001", periodo, 0, "08:00-10:00", "Sala B1"),
                 "Limite de vagas deve ser maior que zero.");
 
         // Assert: Turma anterior criada com sucesso tem limite válido
@@ -270,7 +323,8 @@ class RF23ListaEsperaManutencaoTest {
     @Order(9)
     void deveManterConsistenciaEntreVagasEFila() {
         // Arrange: Turma com 2 vagas
-        Turma turma = turmaService.ofertarTurma("CC101", "P001", periodo, 2, "08:00-10:00", "Sala A1");
+        Turma turma =
+                turmaService.ofertarTurma("CC101", "P001", periodo, 2, "08:00-10:00", "Sala A1");
 
         // Act: Matricular 4 alunos (2 vagas, 2 na fila)
         turmaService.solicitarMatricula(turma.getCodigo(), "A001");
@@ -292,7 +346,8 @@ class RF23ListaEsperaManutencaoTest {
 
         // Assert: Um da fila foi promovido
         assertEquals(0, turmaAposCancel.getVagasDisponiveis()); // Vagas foram preenchidas
-        assertEquals(2, turmaAposCancel.getTotalMatriculados()); // A003 foi promovido no lugar de A001
+        assertEquals(
+                2, turmaAposCancel.getTotalMatriculados()); // A003 foi promovido no lugar de A001
         assertEquals(1, turmaAposCancel.getTotalEmEspera()); // A004 ainda na fila
     }
 }

@@ -1,11 +1,11 @@
 package classroompb.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.example.classroompb.model.*;
 import org.example.classroompb.repository.UsuarioRepository;
 import org.example.classroompb.service.UsuarioService;
 import org.junit.jupiter.api.*;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class RF02LoginTest {
@@ -54,29 +54,25 @@ class RF02LoginTest {
     @Order(3)
     void deveRejeitarSenhaErrada() {
         service.cadastrar("ALUNO", "João", "2026001", "joao@email.com", "1234");
-        assertThrows(IllegalArgumentException.class, () ->
-                service.login("2026001", "senhaerrada"));
+        assertThrows(IllegalArgumentException.class, () -> service.login("2026001", "senhaerrada"));
     }
 
     @Test
     @Order(4)
     void deveRejeitarUsuarioInexistente() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.login("naoexiste", "1234"));
+        assertThrows(IllegalArgumentException.class, () -> service.login("naoexiste", "1234"));
     }
 
     @Test
     @Order(5)
     void deveRejeitarLoginComIdentificadorVazio() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.login("", "1234"));
+        assertThrows(IllegalArgumentException.class, () -> service.login("", "1234"));
     }
 
     @Test
     @Order(6)
     void deveRejeitarLoginComSenhaVazia() {
         service.cadastrar("ALUNO", "João", "2026001", "joao@email.com", "1234");
-        assertThrows(IllegalArgumentException.class, () ->
-                service.login("2026001", ""));
+        assertThrows(IllegalArgumentException.class, () -> service.login("2026001", ""));
     }
 }

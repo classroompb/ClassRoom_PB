@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.example.classroompb.model.Avaliacao;
 import org.example.classroompb.model.SituacaoFinal;
+import org.example.classroompb.model.StatusPeriodoLetivo;
 import org.example.classroompb.model.Turma;
 import org.example.classroompb.repository.AvaliacaoRepository;
 
@@ -31,6 +32,25 @@ public class AvaliacaoService {
     public void lancarNota(String codigoTurma, String matriculaAluno, double nota) {
         Avaliacao avaliacao = obterOuCriarAvaliacao(codigoTurma, matriculaAluno);
         avaliacao.adicionarNota(nota);
+        repository.salvarTodos(avaliacoes);
+    }
+
+    // RF34 - Professor edita uma nota de um aluno de uma turma
+    public void alterarNota(
+            String codigoTurma, String matriculaAluno, int indiceNota, double novaNota) {
+        Turma turma = turmaService.buscarPorCodigo(codigoTurma);
+        if (turma == null) {
+            throw new IllegalArgumentException("Turma não encontrada: " + codigoTurma);
+        }
+        if (turma.isFechada()) {
+            throw new IllegalStateException("Não é possível alterar notas de uma turma fechada.");
+        }
+        if (turma.getPeriodoLetivo().getStatus() == StatusPeriodoLetivo.ENCERRADO) {
+            throw new IllegalStateException("Não é possível alterar notas de uma turma encerrada.");
+        }
+
+        Avaliacao avaliacao = exigirAvaliacao(codigoTurma, matriculaAluno);
+        avaliacao.alterarNota(indiceNota, novaNota);
         repository.salvarTodos(avaliacoes);
     }
 
@@ -110,6 +130,9 @@ public class AvaliacaoService {
         if (turma == null) {
             throw new IllegalArgumentException("Turma não encontrada: " + codigoTurma);
         }
+        if (turma.isFechada()) {
+            throw new IllegalStateException("Não é possível lançar notas em uma turma fechada.");
+        }
         if (!turma.alunoJaMatriculado(matriculaAluno)) {
             throw new IllegalArgumentException(
                     "Aluno "
@@ -124,5 +147,38 @@ public class AvaliacaoService {
             avaliacoes.add(avaliacao);
         }
         return avaliacao;
+    }
+
+    // RF36 - Professor fecha as notas de uma turma
+    public void fecharTurma(String codigoTurma) {
+        Turma turma = turmaService.buscarPorCodigo(codigoTurma);
+        if (turma == null) {
+            throw new IllegalArgumentException("Turma não encontrada: " + codigoTurma);
+        }
+        if (turma.isFechada()) {
+            throw new IllegalStateException("A turma já está fechada.");
+        }
+
+        List<String> matriculas = turma.getAlunoMatriculados();
+        for (String matricula : matriculas) {
+            Avaliacao avaliacao = buscarAvaliacao(codigoTurma, matricula);
+            if (avaliacao == null || avaliacao.getNotas().isEmpty()) {
+                throw new IllegalStateException(
+                        "Não é possível fechar a turma: o aluno "
+                                + matricula
+                                + " não possui notas lançadas.");
+            }
+        }
+
+        turma.fechar();
+        for (String matricula : matriculas) {
+            Avaliacao avaliacao = buscarAvaliacao(codigoTurma, matricula);
+            if (avaliacao != null) {
+                avaliacao.fechar();
+            }
+        }
+
+        repository.salvarTodos(avaliacoes);
+        turmaService.salvarTodas();
     }
 }

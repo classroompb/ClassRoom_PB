@@ -1,13 +1,12 @@
 package classroompb.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.List;
 import org.example.classroompb.model.Curso;
 import org.example.classroompb.repository.CursoRepository;
 import org.example.classroompb.service.CursoService;
 import org.junit.jupiter.api.*;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class RF05CadastroCursoTest {
@@ -46,54 +45,51 @@ class RF05CadastroCursoTest {
     @Test
     @Order(2)
     void deveRejeitarCursoComCodigoVazio() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar("", "Algum curso"));
+        assertThrows(IllegalArgumentException.class, () -> service.cadastrar("", "Algum curso"));
     }
 
     @Test
     @Order(3)
     void deveRejeitarCursoComCodigoNulo() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar(null, "Algum curso"));
+        assertThrows(IllegalArgumentException.class, () -> service.cadastrar(null, "Algum curso"));
     }
 
     @Test
     @Order(4)
     void deveRejeitarCursoComCodigoApenasEspacos() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar("   ", "Algum curso"));
+        assertThrows(IllegalArgumentException.class, () -> service.cadastrar("   ", "Algum curso"));
     }
 
     @Test
     @Order(5)
     void deveRejeitarCursoComNomeVazio() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar("CC", ""));
+        assertThrows(IllegalArgumentException.class, () -> service.cadastrar("CC", ""));
     }
 
     @Test
     @Order(6)
     void deveRejeitarCursoComNomeNulo() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar("CC", null));
+        assertThrows(IllegalArgumentException.class, () -> service.cadastrar("CC", null));
     }
 
     @Test
     @Order(7)
     void deveRejeitarCursoComCodigoDuplicado() {
         service.cadastrar("CC", "Ciência da Computação");
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar("CC", "Outro Nome"));
-        assertTrue(ex.getMessage().toLowerCase().contains("código")
-                || ex.getMessage().toLowerCase().contains("codigo"));
+        IllegalArgumentException ex =
+                assertThrows(
+                        IllegalArgumentException.class,
+                        () -> service.cadastrar("CC", "Outro Nome"));
+        assertTrue(
+                ex.getMessage().toLowerCase().contains("código")
+                        || ex.getMessage().toLowerCase().contains("codigo"));
     }
 
     @Test
     @Order(8)
     void deveRejeitarCursoComCodigoDuplicadoCaseInsensitive() {
         service.cadastrar("CC", "Ciência da Computação");
-        assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar("cc", "Computação"));
+        assertThrows(IllegalArgumentException.class, () -> service.cadastrar("cc", "Computação"));
     }
 
     @Test

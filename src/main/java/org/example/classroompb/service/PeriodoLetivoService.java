@@ -1,10 +1,9 @@
 package org.example.classroompb.service;
 
+import java.util.List;
 import org.example.classroompb.model.PeriodoLetivo;
 import org.example.classroompb.model.StatusPeriodoLetivo;
 import org.example.classroompb.repository.PeriodoLetivoRepository;
-
-import java.util.List;
 
 public class PeriodoLetivoService {
 
@@ -21,7 +20,8 @@ public class PeriodoLetivoService {
         validarIdentificador(identificador);
 
         if (jaExiste(identificador)) {
-            throw new IllegalArgumentException("Ja existe um periodo letivo com o identificador: " + identificador);
+            throw new IllegalArgumentException(
+                    "Ja existe um periodo letivo com o identificador: " + identificador);
         }
 
         PeriodoLetivo periodo = new PeriodoLetivo(identificador);
@@ -81,7 +81,8 @@ public class PeriodoLetivoService {
 
         return periodos.stream()
                 .filter(p -> p.getIdentificador().equalsIgnoreCase(identificador))
-                .findFirst().orElse(null);
+                .findFirst()
+                .orElse(null);
     }
 
     public boolean jaExiste(String identificador) {
@@ -94,11 +95,13 @@ public class PeriodoLetivoService {
 
     private void validarIdentificador(String identificador) {
         if (identificador == null || identificador.isBlank()) {
-            throw new IllegalArgumentException("Identificador do periodo letivo nao pode ser vazio.");
+            throw new IllegalArgumentException(
+                    "Identificador do periodo letivo nao pode ser vazio.");
         }
 
         if (!identificador.matches("\\d{4}\\.[12]")) {
-            throw new IllegalArgumentException("Identificador deve seguir o formato YYYY.N, como 2026.1 ou 2026.2.");
+            throw new IllegalArgumentException(
+                    "Identificador deve seguir o formato YYYY.N, como 2026.1 ou 2026.2.");
         }
     }
 }

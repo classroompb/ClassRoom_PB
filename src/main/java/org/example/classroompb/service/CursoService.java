@@ -1,9 +1,8 @@
 package org.example.classroompb.service;
 
+import java.util.List;
 import org.example.classroompb.model.Curso;
 import org.example.classroompb.repository.CursoRepository;
-
-import java.util.List;
 
 public class CursoService {
 
@@ -35,7 +34,8 @@ public class CursoService {
         if (codigo == null) return null;
         return cursos.stream()
                 .filter(c -> c.getCodigo().equalsIgnoreCase(codigo))
-                .findFirst().orElse(null);
+                .findFirst()
+                .orElse(null);
     }
 
     public boolean codigoJaExiste(String codigo) {

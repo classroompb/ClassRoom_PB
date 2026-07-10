@@ -1,14 +1,13 @@
 package classroompb.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.ArrayList;
+import java.util.List;
 import org.example.classroompb.model.Disciplina;
 import org.example.classroompb.repository.DisciplinaRepository;
 import org.example.classroompb.service.DisciplinaService;
 import org.junit.jupiter.api.*;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class RF06DisciplinaTest {
@@ -61,64 +60,69 @@ class RF06DisciplinaTest {
     @Test
     @Order(3)
     void deveRejeitarCodigoVazio() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar("", "Engenharia de Software 2", 60, 4));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.cadastrar("", "Engenharia de Software 2", 60, 4));
     }
 
     @Test
     @Order(4)
     void deveRejeitarCodigoNulo() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar(null, "Engenharia de Software 2", 60, 4));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.cadastrar(null, "Engenharia de Software 2", 60, 4));
     }
 
     @Test
     @Order(5)
     void deveRejeitarCodigoApenasEspacos() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar("   ", "Engenharia de Software 2", 60, 4));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.cadastrar("   ", "Engenharia de Software 2", 60, 4));
     }
 
     @Test
     @Order(6)
     void deveRejeitarNomeVazio() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar("ES2", "", 60, 4));
+        assertThrows(IllegalArgumentException.class, () -> service.cadastrar("ES2", "", 60, 4));
     }
 
     @Test
     @Order(7)
     void deveRejeitarNomeNulo() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar("ES2", null, 60, 4));
+        assertThrows(IllegalArgumentException.class, () -> service.cadastrar("ES2", null, 60, 4));
     }
 
     @Test
     @Order(8)
     void deveRejeitarCargaHorariaZero() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar("ES2", "Engenharia de Software 2", 0, 4));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.cadastrar("ES2", "Engenharia de Software 2", 0, 4));
     }
 
     @Test
     @Order(9)
     void deveRejeitarCargaHorariaNegativa() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar("ES2", "Engenharia de Software 2", -10, 4));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.cadastrar("ES2", "Engenharia de Software 2", -10, 4));
     }
 
     @Test
     @Order(10)
     void deveRejeitarCreditosZero() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar("ES2", "Engenharia de Software 2", 60, 0));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.cadastrar("ES2", "Engenharia de Software 2", 60, 0));
     }
 
     @Test
     @Order(11)
     void deveRejeitarCreditosNegativos() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar("ES2", "Engenharia de Software 2", 60, -1));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.cadastrar("ES2", "Engenharia de Software 2", 60, -1));
     }
 
     // --- RF06: duplicata ---
@@ -127,16 +131,18 @@ class RF06DisciplinaTest {
     @Order(12)
     void deveRejeitarCodigoDuplicado() {
         service.cadastrar("ES2", "Engenharia de Software 2", 60, 4);
-        assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar("ES2", "Outro Nome", 30, 2));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.cadastrar("ES2", "Outro Nome", 30, 2));
     }
 
     @Test
     @Order(13)
     void deveRejeitarCodigoDuplicadoCaseInsensitive() {
         service.cadastrar("ES2", "Engenharia de Software 2", 60, 4);
-        assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar("es2", "Outro Nome", 30, 2));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.cadastrar("es2", "Outro Nome", 30, 2));
     }
 
     // --- Busca e listagem ---
@@ -193,15 +199,17 @@ class RF06DisciplinaTest {
     @Order(20)
     void deveRejeitarPreRequisitoComDisciplinaInexistente() {
         service.cadastrar("CALC1", "Cálculo 1", 80, 6);
-        assertThrows(IllegalArgumentException.class, () ->
-                service.adicionarPreRequisito("INEXISTENTE", "CALC1"));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.adicionarPreRequisito("INEXISTENTE", "CALC1"));
     }
 
     @Test
     @Order(21)
     void deveRejeitarPreRequisitoInexistente() {
         service.cadastrar("CALC2", "Cálculo 2", 80, 6);
-        assertThrows(IllegalArgumentException.class, () ->
-                service.adicionarPreRequisito("CALC2", "INEXISTENTE"));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.adicionarPreRequisito("CALC2", "INEXISTENTE"));
     }
 }

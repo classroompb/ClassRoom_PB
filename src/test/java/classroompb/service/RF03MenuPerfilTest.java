@@ -1,11 +1,11 @@
 package classroompb.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.example.classroompb.model.*;
 import org.example.classroompb.repository.UsuarioRepository;
 import org.example.classroompb.service.UsuarioService;
 import org.junit.jupiter.api.*;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class RF03MenuPerfilTest {

@@ -1,10 +1,9 @@
 package org.example.classroompb.repository;
 
-import org.example.classroompb.model.Usuario;
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import org.example.classroompb.model.Usuario;
 
 public class UsuarioRepository {
 

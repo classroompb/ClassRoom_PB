@@ -1,5 +1,8 @@
 package classroompb.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.nio.file.Path;
 import org.example.classroompb.model.PeriodoLetivo;
 import org.example.classroompb.model.StatusPeriodoLetivo;
 import org.example.classroompb.repository.PeriodoLetivoRepository;
@@ -7,21 +10,15 @@ import org.example.classroompb.service.PeriodoLetivoService;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 
-import java.nio.file.Path;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 /**
  * RF09: Gerenciamento de Períodos Letivos
  *
- * O coordenador deve poder gerenciar os períodos letivos,
- * incluindo ativação e encerramento.
+ * <p>O coordenador deve poder gerenciar os períodos letivos, incluindo ativação e encerramento.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class RF09GerenciamentoPeriodoTest {
 
-    @TempDir
-    Path tempDir;
+    @TempDir Path tempDir;
 
     private PeriodoLetivoService service;
 
@@ -69,8 +66,7 @@ class RF09GerenciamentoPeriodoTest {
     @Test
     @Order(4)
     void deveRejeitarAtivarPeriodoInexistente() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.ativar("2026.1"));
+        assertThrows(IllegalArgumentException.class, () -> service.ativar("2026.1"));
     }
 
     @Test
@@ -79,8 +75,7 @@ class RF09GerenciamentoPeriodoTest {
         service.cadastrar("2026.1");
         service.ativar("2026.1");
 
-        assertThrows(IllegalArgumentException.class, () ->
-                service.ativar("2026.1"));
+        assertThrows(IllegalArgumentException.class, () -> service.ativar("2026.1"));
     }
 
     @Test
@@ -90,15 +85,13 @@ class RF09GerenciamentoPeriodoTest {
         service.ativar("2026.1");
         service.encerrar("2026.1");
 
-        assertThrows(IllegalArgumentException.class, () ->
-                service.ativar("2026.1"));
+        assertThrows(IllegalArgumentException.class, () -> service.ativar("2026.1"));
     }
 
     @Test
     @Order(7)
     void deveRejeitarEncerrarPeriodoInexistente() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.encerrar("2026.1"));
+        assertThrows(IllegalArgumentException.class, () -> service.encerrar("2026.1"));
     }
 
     @Test
@@ -106,8 +99,7 @@ class RF09GerenciamentoPeriodoTest {
     void deveRejeitarEncerrarPeriodoInativo() {
         service.cadastrar("2026.1");
 
-        assertThrows(IllegalArgumentException.class, () ->
-                service.encerrar("2026.1"));
+        assertThrows(IllegalArgumentException.class, () -> service.encerrar("2026.1"));
     }
 
     @Test
@@ -117,8 +109,7 @@ class RF09GerenciamentoPeriodoTest {
         service.ativar("2026.1");
         service.encerrar("2026.1");
 
-        assertThrows(IllegalArgumentException.class, () ->
-                service.encerrar("2026.1"));
+        assertThrows(IllegalArgumentException.class, () -> service.encerrar("2026.1"));
     }
 
     @Test
@@ -188,29 +179,25 @@ class RF09GerenciamentoPeriodoTest {
     @Test
     @Order(15)
     void deveRejeitarAttivarComIdentificadorNulo() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.ativar(null));
+        assertThrows(IllegalArgumentException.class, () -> service.ativar(null));
     }
 
     @Test
     @Order(16)
     void deveRejeitarEncerrarComIdentificadorNulo() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.encerrar(null));
+        assertThrows(IllegalArgumentException.class, () -> service.encerrar(null));
     }
 
     @Test
     @Order(17)
     void deveRejeitarAttivarComIdentificadorVazio() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.ativar(""));
+        assertThrows(IllegalArgumentException.class, () -> service.ativar(""));
     }
 
     @Test
     @Order(18)
     void deveRejeitarEncerrarComIdentificadorVazio() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.encerrar(""));
+        assertThrows(IllegalArgumentException.class, () -> service.encerrar(""));
     }
 
     @Test
@@ -223,9 +210,11 @@ class RF09GerenciamentoPeriodoTest {
         var periodos = service.listarTodos();
 
         assertEquals(2, periodos.size());
-        var ativo = periodos.stream().filter(p -> p.getStatus() == StatusPeriodoLetivo.ATIVO).findFirst();
+        var ativo =
+                periodos.stream()
+                        .filter(p -> p.getStatus() == StatusPeriodoLetivo.ATIVO)
+                        .findFirst();
         assertTrue(ativo.isPresent());
         assertEquals("2026.1", ativo.get().getIdentificador());
     }
 }
-

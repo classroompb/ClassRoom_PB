@@ -20,13 +20,29 @@ public abstract class Usuario implements Serializable {
         this.tipo = tipo;
     }
 
-    public String getNome()      { return nome; }
-    public String getMatricula() { return matricula; }
-    public String getEmail()     { return email; }
-    public String getSenha()     { return senha; }
-    public TipoUsuario getTipo() { return tipo; }
+    public String getNome() {
+        return nome;
+    }
 
-    public void setSenha(String senha) { this.senha = senha; }
+    public String getMatricula() {
+        return matricula;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getSenha() {
+        return senha;
+    }
+
+    public TipoUsuario getTipo() {
+        return tipo;
+    }
+
+    public void setSenha(String senha) {
+        this.senha = senha;
+    }
 
     @Override
     public String toString() {

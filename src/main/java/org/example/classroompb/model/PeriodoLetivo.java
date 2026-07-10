@@ -21,7 +21,11 @@ public class PeriodoLetivo implements Serializable {
         this.dataLimiteCancelamento = null;
     }
 
-    public PeriodoLetivo(String identificador, LocalDate dataInicio, LocalDate dataFim, LocalDate dataLimiteCancelamento) {
+    public PeriodoLetivo(
+            String identificador,
+            LocalDate dataInicio,
+            LocalDate dataFim,
+            LocalDate dataLimiteCancelamento) {
         this.identificador = identificador;
         this.status = StatusPeriodoLetivo.INATIVO;
         this.dataInicio = dataInicio;
@@ -73,14 +77,13 @@ public class PeriodoLetivo implements Serializable {
         this.status = StatusPeriodoLetivo.ENCERRADO;
     }
 
-    /**
-     * RF22: Verifica se cancelamento está permitido (dentro do prazo)
-     */
+    /** RF22: Verifica se cancelamento está permitido (dentro do prazo) */
     public boolean permiteCancelamento() {
         if (dataLimiteCancelamento == null) {
             return true; // Se não há limite, permite
         }
-        return LocalDate.now().isBefore(dataLimiteCancelamento) || LocalDate.now().equals(dataLimiteCancelamento);
+        return LocalDate.now().isBefore(dataLimiteCancelamento)
+                || LocalDate.now().equals(dataLimiteCancelamento);
     }
 
     @Override

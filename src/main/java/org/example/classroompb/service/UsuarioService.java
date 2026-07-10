@@ -1,9 +1,8 @@
 package org.example.classroompb.service;
 
+import java.util.List;
 import org.example.classroompb.model.*;
 import org.example.classroompb.repository.UsuarioRepository;
-
-import java.util.List;
 
 public class UsuarioService {
 
@@ -16,25 +15,31 @@ public class UsuarioService {
     }
 
     // RF01 - Cadastro de usuários
-    public Usuario cadastrar(String tipo, String nome, String matricula, String email, String senha) {
+    public Usuario cadastrar(
+            String tipo, String nome, String matricula, String email, String senha) {
         validarCampos(nome, matricula, email, senha);
 
         // RF04 - Impedir cadastro duplicado
         if (buscarPorMatricula(matricula) != null) {
-            throw new IllegalArgumentException("Já existe um usuário com a matrícula: " + matricula);
+            throw new IllegalArgumentException(
+                    "Já existe um usuário com a matrícula: " + matricula);
         }
         if (buscarPorEmail(email) != null) {
             throw new IllegalArgumentException("Já existe um usuário com o email: " + email);
         }
 
-        Usuario usuario = switch (tipo.toUpperCase()) {
-            case "ALUNO"          -> new Aluno(nome, matricula, email, senha);
-            case "PROFESSOR"      -> new Professor(nome, matricula, email, senha);
-            case "COORDENADOR"    -> new Coordenador(nome, matricula, email, senha);
-            case "ADMINISTRADOR"  -> new Administrador(nome, matricula, email, senha);
-            default -> throw new IllegalArgumentException("Tipo de usuário inválido: " + tipo +
-                    ". Use: ALUNO, PROFESSOR, COORDENADOR ou ADMINISTRADOR.");
-        };
+        Usuario usuario =
+                switch (tipo.toUpperCase()) {
+                    case "ALUNO" -> new Aluno(nome, matricula, email, senha);
+                    case "PROFESSOR" -> new Professor(nome, matricula, email, senha);
+                    case "COORDENADOR" -> new Coordenador(nome, matricula, email, senha);
+                    case "ADMINISTRADOR" -> new Administrador(nome, matricula, email, senha);
+                    default ->
+                            throw new IllegalArgumentException(
+                                    "Tipo de usuário inválido: "
+                                            + tipo
+                                            + ". Use: ALUNO, PROFESSOR, COORDENADOR ou ADMINISTRADOR.");
+                };
 
         usuarios.add(usuario);
         repository.salvarTodos(usuarios);
@@ -65,7 +70,8 @@ public class UsuarioService {
     // RF03 - Retorna menu de funcionalidades conforme o perfil
     public String getMenuPorPerfil(TipoUsuario tipo) {
         return switch (tipo) {
-            case ALUNO -> """
+            case ALUNO ->
+                    """
                     === MENU ALUNO ===
                     1. Consultar disciplinas e turmas
                     2. Solicitar matrícula
@@ -75,16 +81,19 @@ public class UsuarioService {
                     6. Cancelar matrícula
                     0. Sair
                     """;
-            case PROFESSOR -> """
+            case PROFESSOR ->
+                    """
                     === MENU PROFESSOR ===
                     1. Visualizar turmas
                     2. Registrar frequência
                     3. Lançar notas
                     4. Acompanhar alunos
                     5. Alterar notas (antes do fechamento)
+                    6. Fechar notas de uma turma
                     0. Sair
                     """;
-            case COORDENADOR -> """
+            case COORDENADOR ->
+                    """
                     === MENU COORDENADOR ===
                     1. Cadastrar disciplinas
                     2. Ofertar turmas
@@ -97,7 +106,8 @@ public class UsuarioService {
                     10. Adicionar pré-requisito em disciplina
                     0. Sair
                     """;
-            case ADMINISTRADOR -> """
+            case ADMINISTRADOR ->
+                    """
                     === MENU ADMINISTRADOR ===
                     1. Gerenciar usuários
                     2. Cadastrar cursos
@@ -116,13 +126,15 @@ public class UsuarioService {
     public Usuario buscarPorMatricula(String matricula) {
         return usuarios.stream()
                 .filter(u -> u.getMatricula().equalsIgnoreCase(matricula))
-                .findFirst().orElse(null);
+                .findFirst()
+                .orElse(null);
     }
 
     public Usuario buscarPorEmail(String email) {
         return usuarios.stream()
                 .filter(u -> u.getEmail().equalsIgnoreCase(email))
-                .findFirst().orElse(null);
+                .findFirst()
+                .orElse(null);
     }
 
     // RF04 - Helpers para verificar duplicidade sem lançar exceção

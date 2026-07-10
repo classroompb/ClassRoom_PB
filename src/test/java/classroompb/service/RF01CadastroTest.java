@@ -1,13 +1,12 @@
 package classroompb.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.List;
 import org.example.classroompb.model.*;
 import org.example.classroompb.repository.UsuarioRepository;
 import org.example.classroompb.service.UsuarioService;
 import org.junit.jupiter.api.*;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class RF01CadastroTest {
@@ -71,29 +70,33 @@ class RF01CadastroTest {
     @Test
     @Order(5)
     void deveLancarExcecaoParaTipoInvalido() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar("DIRETOR", "X", "X001", "x@email.com", "1234"));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.cadastrar("DIRETOR", "X", "X001", "x@email.com", "1234"));
     }
 
     @Test
     @Order(6)
     void deveLancarExcecaoParaNomeVazio() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar("ALUNO", "", "2026002", "a@email.com", "1234"));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.cadastrar("ALUNO", "", "2026002", "a@email.com", "1234"));
     }
 
     @Test
     @Order(7)
     void deveLancarExcecaoParaEmailInvalido() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar("ALUNO", "Nome", "2026003", "emailsemarroba", "1234"));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.cadastrar("ALUNO", "Nome", "2026003", "emailsemarroba", "1234"));
     }
 
     @Test
     @Order(8)
     void deveLancarExcecaoParaSenhaCurta() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar("ALUNO", "Nome", "2026004", "b@email.com", "123"));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.cadastrar("ALUNO", "Nome", "2026004", "b@email.com", "123"));
     }
 
     @Test

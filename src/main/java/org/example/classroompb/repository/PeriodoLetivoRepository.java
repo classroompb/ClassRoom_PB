@@ -2,15 +2,13 @@ package org.example.classroompb.repository;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
-import org.example.classroompb.model.PeriodoLetivo;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -21,6 +19,7 @@ import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import org.example.classroompb.model.PeriodoLetivo;
 
 public class PeriodoLetivoRepository {
 
@@ -40,21 +39,33 @@ public class PeriodoLetivoRepository {
             pasta.mkdirs();
         }
         // Configurar Gson com TypeAdapter para LocalDate
-        this.gson = new GsonBuilder()
-                .setPrettyPrinting()
-                .registerTypeAdapter(LocalDate.class, new JsonSerializer<LocalDate>() {
-                    @Override
-                    public com.google.gson.JsonElement serialize(LocalDate src, Type typeOfSrc, JsonSerializationContext context) {
-                        return new com.google.gson.JsonPrimitive(src.toString());
-                    }
-                })
-                .registerTypeAdapter(LocalDate.class, new JsonDeserializer<LocalDate>() {
-                    @Override
-                    public LocalDate deserialize(JsonElement json, Type typeOfDest, JsonDeserializationContext context) throws com.google.gson.JsonParseException {
-                        return LocalDate.parse(json.getAsString());
-                    }
-                })
-                .create();
+        this.gson =
+                new GsonBuilder()
+                        .setPrettyPrinting()
+                        .registerTypeAdapter(
+                                LocalDate.class,
+                                new JsonSerializer<LocalDate>() {
+                                    @Override
+                                    public com.google.gson.JsonElement serialize(
+                                            LocalDate src,
+                                            Type typeOfSrc,
+                                            JsonSerializationContext context) {
+                                        return new com.google.gson.JsonPrimitive(src.toString());
+                                    }
+                                })
+                        .registerTypeAdapter(
+                                LocalDate.class,
+                                new JsonDeserializer<LocalDate>() {
+                                    @Override
+                                    public LocalDate deserialize(
+                                            JsonElement json,
+                                            Type typeOfDest,
+                                            JsonDeserializationContext context)
+                                            throws com.google.gson.JsonParseException {
+                                        return LocalDate.parse(json.getAsString());
+                                    }
+                                })
+                        .create();
     }
 
     public List<PeriodoLetivo> carregarTodos() {
