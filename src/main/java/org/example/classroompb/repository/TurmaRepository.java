@@ -1,10 +1,9 @@
 package org.example.classroompb.repository;
 
-import org.example.classroompb.model.Turma;
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import org.example.classroompb.model.Turma;
 
 public class TurmaRepository {
 
@@ -35,4 +34,3 @@ public class TurmaRepository {
         }
     }
 }
-

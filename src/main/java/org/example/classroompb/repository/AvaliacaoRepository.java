@@ -1,15 +1,13 @@
 package org.example.classroompb.repository;
 
-import org.example.classroompb.model.Avaliacao;
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import org.example.classroompb.model.Avaliacao;
 
 /**
- * Persistência das avaliações em disco (Release 3).
- * Segue o mesmo padrão dos demais repositórios do projeto:
- * serialização de objetos em arquivo .dat na pasta dados/.
+ * Persistência das avaliações em disco (Release 3). Segue o mesmo padrão dos demais repositórios do
+ * projeto: serialização de objetos em arquivo .dat na pasta dados/.
  */
 public class AvaliacaoRepository {
 

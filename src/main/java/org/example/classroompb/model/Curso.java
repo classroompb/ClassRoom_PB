@@ -14,8 +14,13 @@ public class Curso implements Serializable {
         this.nome = nome;
     }
 
-    public String getCodigo() { return codigo; }
-    public String getNome()   { return nome; }
+    public String getCodigo() {
+        return codigo;
+    }
+
+    public String getNome() {
+        return nome;
+    }
 
     @Override
     public String toString() {

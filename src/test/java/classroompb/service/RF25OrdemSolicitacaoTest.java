@@ -1,5 +1,9 @@
 package classroompb.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.ArrayList;
+import java.util.List;
 import org.example.classroompb.model.Disciplina;
 import org.example.classroompb.model.PeriodoLetivo;
 import org.example.classroompb.model.Turma;
@@ -15,16 +19,11 @@ import org.example.classroompb.service.UsuarioService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 /**
  * RF25: A lista de espera deve respeitar a ordem de solicitação (FIFO).
  *
- * Verifica que a ordem é preservada na inserção, após remoções manuais e após
- * promoções automáticas (RF24).
+ * <p>Verifica que a ordem é preservada na inserção, após remoções manuais e após promoções
+ * automáticas (RF24).
  */
 class RF25OrdemSolicitacaoTest {
 
@@ -33,26 +32,62 @@ class RF25OrdemSolicitacaoTest {
 
     static class TurmaRepositorioFake extends TurmaRepository {
         private final List<Turma> lista = new ArrayList<>();
-        @Override public List<Turma> carregarTodos() { return new ArrayList<>(lista); }
-        @Override public void salvarTodos(List<Turma> turmas) { lista.clear(); lista.addAll(turmas); }
+
+        @Override
+        public List<Turma> carregarTodos() {
+            return new ArrayList<>(lista);
+        }
+
+        @Override
+        public void salvarTodos(List<Turma> turmas) {
+            lista.clear();
+            lista.addAll(turmas);
+        }
     }
 
     static class UsuarioRepositorioFake extends UsuarioRepository {
         private final List<Usuario> lista = new ArrayList<>();
-        @Override public List<Usuario> carregarTodos() { return new ArrayList<>(lista); }
-        @Override public void salvarTodos(List<Usuario> usuarios) { lista.clear(); lista.addAll(usuarios); }
+
+        @Override
+        public List<Usuario> carregarTodos() {
+            return new ArrayList<>(lista);
+        }
+
+        @Override
+        public void salvarTodos(List<Usuario> usuarios) {
+            lista.clear();
+            lista.addAll(usuarios);
+        }
     }
 
     static class DisciplinaRepositorioFake extends DisciplinaRepository {
         private final List<Disciplina> lista = new ArrayList<>();
-        @Override public List<Disciplina> carregarTodos() { return new ArrayList<>(lista); }
-        @Override public void salvarTodos(List<Disciplina> disciplinas) { lista.clear(); lista.addAll(disciplinas); }
+
+        @Override
+        public List<Disciplina> carregarTodos() {
+            return new ArrayList<>(lista);
+        }
+
+        @Override
+        public void salvarTodos(List<Disciplina> disciplinas) {
+            lista.clear();
+            lista.addAll(disciplinas);
+        }
     }
 
     static class PeriodoLetivoRepositorioFake extends PeriodoLetivoRepository {
         private final List<PeriodoLetivo> lista = new ArrayList<>();
-        @Override public List<PeriodoLetivo> carregarTodos() { return new ArrayList<>(lista); }
-        @Override public void salvarTodos(List<PeriodoLetivo> periodos) { lista.clear(); lista.addAll(periodos); }
+
+        @Override
+        public List<PeriodoLetivo> carregarTodos() {
+            return new ArrayList<>(lista);
+        }
+
+        @Override
+        public void salvarTodos(List<PeriodoLetivo> periodos) {
+            lista.clear();
+            lista.addAll(periodos);
+        }
     }
 
     @BeforeEach
@@ -82,7 +117,8 @@ class RF25OrdemSolicitacaoTest {
 
     @Test
     void deveManterOrdemDeSolicitacaoNaInsercao() {
-        Turma turma = turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
+        Turma turma =
+                turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
         turmaService.solicitarMatricula(turma.getCodigo(), "A001"); // matriculado
 
         turmaService.solicitarMatricula(turma.getCodigo(), "A003");
@@ -95,7 +131,8 @@ class RF25OrdemSolicitacaoTest {
 
     @Test
     void deveChamarSempreOPrimeiroDaOrdem() {
-        Turma turma = turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
+        Turma turma =
+                turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
         turmaService.solicitarMatricula(turma.getCodigo(), "A001");
         turmaService.solicitarMatricula(turma.getCodigo(), "A002"); // 1º da fila
         turmaService.solicitarMatricula(turma.getCodigo(), "A003"); // 2º da fila
@@ -111,7 +148,8 @@ class RF25OrdemSolicitacaoTest {
 
     @Test
     void deveManterOrdemAposRemocaoNoMeioDaFila() {
-        Turma turma = turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
+        Turma turma =
+                turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
         turmaService.solicitarMatricula(turma.getCodigo(), "A001");
         turmaService.solicitarMatricula(turma.getCodigo(), "A002");
         turmaService.solicitarMatricula(turma.getCodigo(), "A003");
@@ -131,7 +169,8 @@ class RF25OrdemSolicitacaoTest {
 
     @Test
     void posicaoNaFilaDeveRefletirOrdemDeSolicitacao() {
-        Turma turma = turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
+        Turma turma =
+                turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
         turmaService.solicitarMatricula(turma.getCodigo(), "A001");
         turmaService.solicitarMatricula(turma.getCodigo(), "A002");
         turmaService.solicitarMatricula(turma.getCodigo(), "A003");
@@ -144,7 +183,8 @@ class RF25OrdemSolicitacaoTest {
 
     @Test
     void listaRetornadaDeveSerCopiaImutavelDoEstadoInterno() {
-        Turma turma = turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
+        Turma turma =
+                turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
         turmaService.solicitarMatricula(turma.getCodigo(), "A001");
         turmaService.solicitarMatricula(turma.getCodigo(), "A002");
 

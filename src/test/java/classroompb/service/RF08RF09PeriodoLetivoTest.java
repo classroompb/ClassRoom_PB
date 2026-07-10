@@ -1,5 +1,11 @@
 package classroompb.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 import org.example.classroompb.model.PeriodoLetivo;
 import org.example.classroompb.model.StatusPeriodoLetivo;
 import org.example.classroompb.repository.PeriodoLetivoRepository;
@@ -8,17 +14,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 class RF08RF09PeriodoLetivoTest {
 
-    @TempDir
-    Path tempDir;
+    @TempDir Path tempDir;
 
     private Path arquivoJson;
     private PeriodoLetivoRepository repository;
@@ -46,8 +44,8 @@ class RF08RF09PeriodoLetivoTest {
     void deveRejeitarPeriodoDuplicado() {
         service.cadastrar("2026.1");
 
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar("2026.1"));
+        IllegalArgumentException ex =
+                assertThrows(IllegalArgumentException.class, () -> service.cadastrar("2026.1"));
 
         assertTrue(ex.getMessage().toLowerCase().contains("ja existe"));
     }
@@ -56,38 +54,30 @@ class RF08RF09PeriodoLetivoTest {
     void deveRejeitarPeriodoDuplicadoComCaseInsensitive() {
         service.cadastrar("2026.1");
 
-        assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar("2026.1"));
+        assertThrows(IllegalArgumentException.class, () -> service.cadastrar("2026.1"));
     }
 
     @Test
     void deveRejeitarIdentificadorNulo() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar(null));
+        assertThrows(IllegalArgumentException.class, () -> service.cadastrar(null));
     }
 
     @Test
     void deveRejeitarIdentificadorVazio() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar(""));
+        assertThrows(IllegalArgumentException.class, () -> service.cadastrar(""));
     }
 
     @Test
     void deveRejeitarIdentificadorApenasEspacos() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar("   "));
+        assertThrows(IllegalArgumentException.class, () -> service.cadastrar("   "));
     }
 
     @Test
     void deveRejeitarIdentificadorForaDoFormato() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar("2026"));
-        assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar("26.1"));
-        assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar("2026.3"));
-        assertThrows(IllegalArgumentException.class, () ->
-                service.cadastrar("abcd.1"));
+        assertThrows(IllegalArgumentException.class, () -> service.cadastrar("2026"));
+        assertThrows(IllegalArgumentException.class, () -> service.cadastrar("26.1"));
+        assertThrows(IllegalArgumentException.class, () -> service.cadastrar("2026.3"));
+        assertThrows(IllegalArgumentException.class, () -> service.cadastrar("abcd.1"));
     }
 
     @Test
@@ -157,8 +147,7 @@ class RF08RF09PeriodoLetivoTest {
 
     @Test
     void deveRejeitarAtivarPeriodoInexistente() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.ativar("2026.1"));
+        assertThrows(IllegalArgumentException.class, () -> service.ativar("2026.1"));
     }
 
     @Test
@@ -166,8 +155,7 @@ class RF08RF09PeriodoLetivoTest {
         service.cadastrar("2026.1");
         service.ativar("2026.1");
 
-        assertThrows(IllegalArgumentException.class, () ->
-                service.ativar("2026.1"));
+        assertThrows(IllegalArgumentException.class, () -> service.ativar("2026.1"));
     }
 
     @Test
@@ -176,22 +164,19 @@ class RF08RF09PeriodoLetivoTest {
         service.ativar("2026.1");
         service.encerrar("2026.1");
 
-        assertThrows(IllegalArgumentException.class, () ->
-                service.ativar("2026.1"));
+        assertThrows(IllegalArgumentException.class, () -> service.ativar("2026.1"));
     }
 
     @Test
     void deveRejeitarEncerrarPeriodoInexistente() {
-        assertThrows(IllegalArgumentException.class, () ->
-                service.encerrar("2026.1"));
+        assertThrows(IllegalArgumentException.class, () -> service.encerrar("2026.1"));
     }
 
     @Test
     void deveRejeitarEncerrarPeriodoInativo() {
         service.cadastrar("2026.1");
 
-        assertThrows(IllegalArgumentException.class, () ->
-                service.encerrar("2026.1"));
+        assertThrows(IllegalArgumentException.class, () -> service.encerrar("2026.1"));
     }
 
     @Test
@@ -200,8 +185,7 @@ class RF08RF09PeriodoLetivoTest {
         service.ativar("2026.1");
         service.encerrar("2026.1");
 
-        assertThrows(IllegalArgumentException.class, () ->
-                service.encerrar("2026.1"));
+        assertThrows(IllegalArgumentException.class, () -> service.encerrar("2026.1"));
     }
 
     // Persistencia em JSON
@@ -211,7 +195,8 @@ class RF08RF09PeriodoLetivoTest {
         service.cadastrar("2026.1");
         service.ativar("2026.1");
 
-        PeriodoLetivoService novoService = new PeriodoLetivoService(new PeriodoLetivoRepository(arquivoJson.toString()));
+        PeriodoLetivoService novoService =
+                new PeriodoLetivoService(new PeriodoLetivoRepository(arquivoJson.toString()));
         PeriodoLetivo periodoCarregado = novoService.buscarPorIdentificador("2026.1");
 
         assertNotNull(periodoCarregado);

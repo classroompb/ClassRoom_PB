@@ -6,48 +6,43 @@ import java.util.List;
 
 public class Disciplina implements Serializable {
 
-	private static final long serialVersionUID = 1L;
-	
-	private String codigo, nome;
-	private int cargaHoraria, creditos;
-	
-	private List<String> preRequisitos;		// lista utiliza o código das disciplinas
-	
-	
-	
-	public Disciplina(String codigo, String nome, int cargaHora, int creditos) {
-		this.codigo = codigo;
-		this.nome = nome;
-		this.cargaHoraria = cargaHora;
-		this.creditos = creditos;
-		
-		this.preRequisitos = new ArrayList<String>();
-	}
+    private static final long serialVersionUID = 1L;
 
-	
-	public String getCodigo() {
-		return codigo;
-	}
+    private String codigo, nome;
+    private int cargaHoraria, creditos;
 
-	public String getNome() {
-		return nome;
-	}
+    private List<String> preRequisitos; // lista utiliza o código das disciplinas
 
-	public int getCargaHoraria() {
-		return cargaHoraria;
-	}
+    public Disciplina(String codigo, String nome, int cargaHora, int creditos) {
+        this.codigo = codigo;
+        this.nome = nome;
+        this.cargaHoraria = cargaHora;
+        this.creditos = creditos;
 
-	public int getCreditos() {
-		return creditos;
-	}
+        this.preRequisitos = new ArrayList<String>();
+    }
 
-	public List<String> getPreRequisitos() {
-		return preRequisitos;
-	}
-	
-	
-	public void adicionarPreRequisito(String codigo) {
-		this.preRequisitos.add(codigo);
-	}
-	
+    public String getCodigo() {
+        return codigo;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public int getCargaHoraria() {
+        return cargaHoraria;
+    }
+
+    public int getCreditos() {
+        return creditos;
+    }
+
+    public List<String> getPreRequisitos() {
+        return preRequisitos;
+    }
+
+    public void adicionarPreRequisito(String codigo) {
+        this.preRequisitos.add(codigo);
+    }
 }

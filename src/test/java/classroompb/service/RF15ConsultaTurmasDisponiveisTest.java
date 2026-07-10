@@ -1,5 +1,10 @@
 package classroompb.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.util.ArrayList;
+import java.util.List;
 import org.example.classroompb.model.Disciplina;
 import org.example.classroompb.model.PeriodoLetivo;
 import org.example.classroompb.model.Turma;
@@ -15,12 +20,6 @@ import org.example.classroompb.service.UsuarioService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 class RF15ConsultaTurmasDisponiveisTest {
 
     private TurmaService turmaService;
@@ -32,26 +31,62 @@ class RF15ConsultaTurmasDisponiveisTest {
 
     static class TurmaRepositorioFake extends TurmaRepository {
         private final List<Turma> lista = new ArrayList<>();
-        @Override public List<Turma> carregarTodos() { return new ArrayList<>(lista); }
-        @Override public void salvarTodos(List<Turma> turmas) { lista.clear(); lista.addAll(turmas); }
+
+        @Override
+        public List<Turma> carregarTodos() {
+            return new ArrayList<>(lista);
+        }
+
+        @Override
+        public void salvarTodos(List<Turma> turmas) {
+            lista.clear();
+            lista.addAll(turmas);
+        }
     }
 
     static class UsuarioRepositorioFake extends UsuarioRepository {
         private final List<Usuario> lista = new ArrayList<>();
-        @Override public List<Usuario> carregarTodos() { return new ArrayList<>(lista); }
-        @Override public void salvarTodos(List<Usuario> usuarios) { lista.clear(); lista.addAll(usuarios); }
+
+        @Override
+        public List<Usuario> carregarTodos() {
+            return new ArrayList<>(lista);
+        }
+
+        @Override
+        public void salvarTodos(List<Usuario> usuarios) {
+            lista.clear();
+            lista.addAll(usuarios);
+        }
     }
 
     static class DisciplinaRepositorioFake extends DisciplinaRepository {
         private final List<Disciplina> lista = new ArrayList<>();
-        @Override public List<Disciplina> carregarTodos() { return new ArrayList<>(lista); }
-        @Override public void salvarTodos(List<Disciplina> disciplinas) { lista.clear(); lista.addAll(disciplinas); }
+
+        @Override
+        public List<Disciplina> carregarTodos() {
+            return new ArrayList<>(lista);
+        }
+
+        @Override
+        public void salvarTodos(List<Disciplina> disciplinas) {
+            lista.clear();
+            lista.addAll(disciplinas);
+        }
     }
 
     static class PeriodoLetivoRepositorioFake extends PeriodoLetivoRepository {
         private final List<PeriodoLetivo> lista = new ArrayList<>();
-        @Override public List<PeriodoLetivo> carregarTodos() { return new ArrayList<>(lista); }
-        @Override public void salvarTodos(List<PeriodoLetivo> periodos) { lista.clear(); lista.addAll(periodos); }
+
+        @Override
+        public List<PeriodoLetivo> carregarTodos() {
+            return new ArrayList<>(lista);
+        }
+
+        @Override
+        public void salvarTodos(List<PeriodoLetivo> periodos) {
+            lista.clear();
+            lista.addAll(periodos);
+        }
     }
 
     @BeforeEach
@@ -81,8 +116,12 @@ class RF15ConsultaTurmasDisponiveisTest {
 
     @Test
     void deveConsultarApenasTurmasComVagasDisponiveis() {
-        Turma turmaComVaga = turmaService.ofertarTurma("CC101", "P001", periodo2026_1, 2, "08:00-10:00", "Sala A1");
-        Turma turmaSemVaga = turmaService.ofertarTurma("CC102", "P002", periodo2026_1, 1, "10:00-12:00", "Sala B1");
+        Turma turmaComVaga =
+                turmaService.ofertarTurma(
+                        "CC101", "P001", periodo2026_1, 2, "08:00-10:00", "Sala A1");
+        Turma turmaSemVaga =
+                turmaService.ofertarTurma(
+                        "CC102", "P002", periodo2026_1, 1, "10:00-12:00", "Sala B1");
 
         turmaService.solicitarMatricula(turmaSemVaga.getCodigo(), "A001");
 
@@ -94,7 +133,9 @@ class RF15ConsultaTurmasDisponiveisTest {
 
     @Test
     void deveConsultarTurmasDisponiveisPorPeriodoLetivo() {
-        Turma turma2026_1 = turmaService.ofertarTurma("CC101", "P001", periodo2026_1, 2, "08:00-10:00", "Sala A1");
+        Turma turma2026_1 =
+                turmaService.ofertarTurma(
+                        "CC101", "P001", periodo2026_1, 2, "08:00-10:00", "Sala A1");
         turmaService.ofertarTurma("CC102", "P002", periodo2026_2, 2, "10:00-12:00", "Sala B1");
 
         List<Turma> disponiveis = turmaService.consultarTurmasDisponiveisPorPeriodo("2026.1");
@@ -105,7 +146,8 @@ class RF15ConsultaTurmasDisponiveisTest {
 
     @Test
     void deveRejeitarConsultaPorPeriodoVazio() {
-        assertThrows(IllegalArgumentException.class, () ->
-                turmaService.consultarTurmasDisponiveisPorPeriodo(""));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> turmaService.consultarTurmasDisponiveisPorPeriodo(""));
     }
 }

@@ -1,13 +1,12 @@
 package classroompb.service;
 
-import org.example.classroompb.model.*;
-import org.example.classroompb.repository.*;
-import org.junit.jupiter.api.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.example.classroompb.model.*;
+import org.example.classroompb.repository.*;
+import org.junit.jupiter.api.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class RepositoryTest {
@@ -89,11 +88,21 @@ class RepositoryTest {
     @Test
     @Order(6)
     void deveSalvarECarregarDisciplinaViaFake() {
-        var repo = new DisciplinaRepository() {
-            private List<Disciplina> lista = new java.util.ArrayList<>();
-            @Override public List<Disciplina> carregarTodos() { return new java.util.ArrayList<>(lista); }
-            @Override public void salvarTodos(List<Disciplina> d) { lista.clear(); lista.addAll(d); }
-        };
+        var repo =
+                new DisciplinaRepository() {
+                    private List<Disciplina> lista = new java.util.ArrayList<>();
+
+                    @Override
+                    public List<Disciplina> carregarTodos() {
+                        return new java.util.ArrayList<>(lista);
+                    }
+
+                    @Override
+                    public void salvarTodos(List<Disciplina> d) {
+                        lista.clear();
+                        lista.addAll(d);
+                    }
+                };
 
         Disciplina d = new Disciplina("CC101", "Programação I", 60, 4);
         repo.salvarTodos(List.of(d));
@@ -106,11 +115,21 @@ class RepositoryTest {
     @Test
     @Order(7)
     void deveRetornarListaVaziaFakeDisciplina() {
-        var repo = new DisciplinaRepository() {
-            private List<Disciplina> lista = new java.util.ArrayList<>();
-            @Override public List<Disciplina> carregarTodos() { return new java.util.ArrayList<>(lista); }
-            @Override public void salvarTodos(List<Disciplina> d) { lista.clear(); lista.addAll(d); }
-        };
+        var repo =
+                new DisciplinaRepository() {
+                    private List<Disciplina> lista = new java.util.ArrayList<>();
+
+                    @Override
+                    public List<Disciplina> carregarTodos() {
+                        return new java.util.ArrayList<>(lista);
+                    }
+
+                    @Override
+                    public void salvarTodos(List<Disciplina> d) {
+                        lista.clear();
+                        lista.addAll(d);
+                    }
+                };
 
         assertTrue(repo.carregarTodos().isEmpty());
     }
@@ -118,16 +137,26 @@ class RepositoryTest {
     @Test
     @Order(8)
     void deveSalvarMultiplasDisciplinas() {
-        var repo = new DisciplinaRepository() {
-            private List<Disciplina> lista = new java.util.ArrayList<>();
-            @Override public List<Disciplina> carregarTodos() { return new java.util.ArrayList<>(lista); }
-            @Override public void salvarTodos(List<Disciplina> d) { lista.clear(); lista.addAll(d); }
-        };
+        var repo =
+                new DisciplinaRepository() {
+                    private List<Disciplina> lista = new java.util.ArrayList<>();
 
-        repo.salvarTodos(List.of(
-            new Disciplina("CC101", "Programação I", 60, 4),
-            new Disciplina("CC102", "Programação II", 60, 4)
-        ));
+                    @Override
+                    public List<Disciplina> carregarTodos() {
+                        return new java.util.ArrayList<>(lista);
+                    }
+
+                    @Override
+                    public void salvarTodos(List<Disciplina> d) {
+                        lista.clear();
+                        lista.addAll(d);
+                    }
+                };
+
+        repo.salvarTodos(
+                List.of(
+                        new Disciplina("CC101", "Programação I", 60, 4),
+                        new Disciplina("CC102", "Programação II", 60, 4)));
 
         assertEquals(2, repo.carregarTodos().size());
     }

@@ -1,19 +1,18 @@
 package classroompb.service;
 
-import org.example.classroompb.model.*;
-import org.example.classroompb.repository.TurmaRepository;
-import org.example.classroompb.repository.UsuarioRepository;
-import org.example.classroompb.repository.DisciplinaRepository;
-import org.example.classroompb.repository.PeriodoLetivoRepository;
-import org.example.classroompb.service.TurmaService;
-import org.example.classroompb.service.UsuarioService;
-import org.example.classroompb.service.DisciplinaService;
-import org.example.classroompb.service.PeriodoLetivoService;
-import org.junit.jupiter.api.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.example.classroompb.model.*;
+import org.example.classroompb.repository.DisciplinaRepository;
+import org.example.classroompb.repository.PeriodoLetivoRepository;
+import org.example.classroompb.repository.TurmaRepository;
+import org.example.classroompb.repository.UsuarioRepository;
+import org.example.classroompb.service.DisciplinaService;
+import org.example.classroompb.service.PeriodoLetivoService;
+import org.example.classroompb.service.TurmaService;
+import org.example.classroompb.service.UsuarioService;
+import org.junit.jupiter.api.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class RF10TurmasOfertadasTest {
@@ -100,10 +99,10 @@ class RF10TurmasOfertadasTest {
         // Cria dados de teste
         usuarioService.cadastrar("PROFESSOR", "Prof. João", "P001", "joao@example.com", "1234");
         usuarioService.cadastrar("PROFESSOR", "Prof. Maria", "P002", "maria@example.com", "1234");
-        
+
         disciplinaService.cadastrar("CC101", "Programação I", 60, 4);
         disciplinaService.cadastrar("CC102", "Programação II", 60, 4);
-        
+
         periodoLetivoService.cadastrar("2024.1");
         periodoLetivoService.cadastrar("2024.2");
     }
@@ -112,9 +111,10 @@ class RF10TurmasOfertadasTest {
     @Order(1)
     void deveOfertarTurmaComSucesso() {
         PeriodoLetivo periodo = periodoLetivoService.buscarPorIdentificador("2024.1");
-        
-        Turma turma = turmaService.ofertarTurma("CC101", "P001", periodo, 30, "08:00-10:00", "Sala A1");
-        
+
+        Turma turma =
+                turmaService.ofertarTurma("CC101", "P001", periodo, 30, "08:00-10:00", "Sala A1");
+
         assertNotNull(turma);
         assertEquals("CC101", turma.getDisciplina().getCodigo());
         assertEquals("P001", turma.getProfessor().getMatricula());
@@ -127,71 +127,88 @@ class RF10TurmasOfertadasTest {
     @Order(2)
     void deveRejeitarTurmaComDisciplinaInvalida() {
         PeriodoLetivo periodo = periodoLetivoService.buscarPorIdentificador("2024.1");
-        
-        assertThrows(IllegalArgumentException.class, () ->
-                turmaService.ofertarTurma("INVALIDA", "P001", periodo, 30, "08:00-10:00", "Sala A1"));
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () ->
+                        turmaService.ofertarTurma(
+                                "INVALIDA", "P001", periodo, 30, "08:00-10:00", "Sala A1"));
     }
 
     @Test
     @Order(3)
     void deveRejeitarTurmaComProfessorInvalido() {
         PeriodoLetivo periodo = periodoLetivoService.buscarPorIdentificador("2024.1");
-        
-        assertThrows(IllegalArgumentException.class, () ->
-                turmaService.ofertarTurma("CC101", "INVALIDO", periodo, 30, "08:00-10:00", "Sala A1"));
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () ->
+                        turmaService.ofertarTurma(
+                                "CC101", "INVALIDO", periodo, 30, "08:00-10:00", "Sala A1"));
     }
 
     @Test
     @Order(4)
     void deveRejeitarTurmaComLimiteVagasZero() {
         PeriodoLetivo periodo = periodoLetivoService.buscarPorIdentificador("2024.1");
-        
-        assertThrows(IllegalArgumentException.class, () ->
-                turmaService.ofertarTurma("CC101", "P001", periodo, 0, "08:00-10:00", "Sala A1"));
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () ->
+                        turmaService.ofertarTurma(
+                                "CC101", "P001", periodo, 0, "08:00-10:00", "Sala A1"));
     }
 
     @Test
     @Order(5)
     void deveRejeitarTurmaComLimiteVagasNegativo() {
         PeriodoLetivo periodo = periodoLetivoService.buscarPorIdentificador("2024.1");
-        
-        assertThrows(IllegalArgumentException.class, () ->
-                turmaService.ofertarTurma("CC101", "P001", periodo, -5, "08:00-10:00", "Sala A1"));
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () ->
+                        turmaService.ofertarTurma(
+                                "CC101", "P001", periodo, -5, "08:00-10:00", "Sala A1"));
     }
 
     @Test
     @Order(6)
     void deveRejeitarTurmaComHorarioVazio() {
         PeriodoLetivo periodo = periodoLetivoService.buscarPorIdentificador("2024.1");
-        
-        assertThrows(IllegalArgumentException.class, () ->
-                turmaService.ofertarTurma("CC101", "P001", periodo, 30, "", "Sala A1"));
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> turmaService.ofertarTurma("CC101", "P001", periodo, 30, "", "Sala A1"));
     }
 
     @Test
     @Order(7)
     void deveRejeitarTurmaComSalaVazia() {
         PeriodoLetivo periodo = periodoLetivoService.buscarPorIdentificador("2024.1");
-        
-        assertThrows(IllegalArgumentException.class, () ->
-                turmaService.ofertarTurma("CC101", "P001", periodo, 30, "08:00-10:00", ""));
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> turmaService.ofertarTurma("CC101", "P001", periodo, 30, "08:00-10:00", ""));
     }
 
     @Test
     @Order(8)
     void deveRejeitarTurmaComPeriodoNulo() {
-        assertThrows(IllegalArgumentException.class, () ->
-                turmaService.ofertarTurma("CC101", "P001", null, 30, "08:00-10:00", "Sala A1"));
+        assertThrows(
+                IllegalArgumentException.class,
+                () ->
+                        turmaService.ofertarTurma(
+                                "CC101", "P001", null, 30, "08:00-10:00", "Sala A1"));
     }
 
     @Test
     @Order(9)
     void devePersistirTurmaAposOferta() {
         PeriodoLetivo periodo = periodoLetivoService.buscarPorIdentificador("2024.1");
-        
+
         turmaService.ofertarTurma("CC101", "P001", periodo, 30, "08:00-10:00", "Sala A1");
         turmaService.ofertarTurma("CC102", "P002", periodo, 25, "10:00-12:00", "Sala A2");
-        
+
         List<Turma> turmas = turmaService.listarTodasAsTurmas();
         assertEquals(2, turmas.size());
     }
@@ -200,10 +217,11 @@ class RF10TurmasOfertadasTest {
     @Order(10)
     void deveBuscarTurmaPorCodigo() {
         PeriodoLetivo periodo = periodoLetivoService.buscarPorIdentificador("2024.1");
-        
-        Turma turmaOfertada = turmaService.ofertarTurma("CC101", "P001", periodo, 30, "08:00-10:00", "Sala A1");
+
+        Turma turmaOfertada =
+                turmaService.ofertarTurma("CC101", "P001", periodo, 30, "08:00-10:00", "Sala A1");
         Turma turmaBuscada = turmaService.buscarPorCodigo(turmaOfertada.getCodigo());
-        
+
         assertNotNull(turmaBuscada);
         assertEquals(turmaOfertada.getCodigo(), turmaBuscada.getCodigo());
     }
@@ -212,11 +230,11 @@ class RF10TurmasOfertadasTest {
     @Order(11)
     void deveListarTurmasPorDisciplina() {
         PeriodoLetivo periodo = periodoLetivoService.buscarPorIdentificador("2024.1");
-        
+
         turmaService.ofertarTurma("CC101", "P001", periodo, 30, "08:00-10:00", "Sala A1");
         turmaService.ofertarTurma("CC101", "P002", periodo, 25, "14:00-16:00", "Sala B1");
         turmaService.ofertarTurma("CC102", "P001", periodo, 20, "10:00-12:00", "Sala A2");
-        
+
         List<Turma> turmasCC101 = turmaService.listarTurmasPorDisciplina("CC101");
         assertEquals(2, turmasCC101.size());
     }
@@ -225,11 +243,11 @@ class RF10TurmasOfertadasTest {
     @Order(12)
     void deveListarTurmasPorProfessor() {
         PeriodoLetivo periodo = periodoLetivoService.buscarPorIdentificador("2024.1");
-        
+
         turmaService.ofertarTurma("CC101", "P001", periodo, 30, "08:00-10:00", "Sala A1");
         turmaService.ofertarTurma("CC102", "P001", periodo, 25, "14:00-16:00", "Sala B1");
         turmaService.ofertarTurma("CC101", "P002", periodo, 20, "10:00-12:00", "Sala A2");
-        
+
         List<Turma> turmasP001 = turmaService.listarTurmasPorProfessor("P001");
         assertEquals(2, turmasP001.size());
     }
@@ -239,14 +257,14 @@ class RF10TurmasOfertadasTest {
     void deveListarTurmasPorPeriodo() {
         PeriodoLetivo periodo1 = periodoLetivoService.buscarPorIdentificador("2024.1");
         PeriodoLetivo periodo2 = periodoLetivoService.buscarPorIdentificador("2024.2");
-        
+
         turmaService.ofertarTurma("CC101", "P001", periodo1, 30, "08:00-10:00", "Sala A1");
         turmaService.ofertarTurma("CC101", "P002", periodo1, 25, "14:00-16:00", "Sala B1");
         turmaService.ofertarTurma("CC102", "P001", periodo2, 20, "10:00-12:00", "Sala A2");
-        
+
         List<Turma> turmas2024_1 = turmaService.listarTurmasPorPeriodo(periodo1);
         assertEquals(2, turmas2024_1.size());
-        
+
         List<Turma> turmas2024_2 = turmaService.listarTurmasPorPeriodo(periodo2);
         assertEquals(1, turmas2024_2.size());
     }
@@ -255,19 +273,21 @@ class RF10TurmasOfertadasTest {
     @Order(14)
     void deveRejeitarTurmaComCodigoDisciplinaVazio() {
         PeriodoLetivo periodo = periodoLetivoService.buscarPorIdentificador("2024.1");
-        
-        assertThrows(IllegalArgumentException.class, () ->
-                turmaService.ofertarTurma("", "P001", periodo, 30, "08:00-10:00", "Sala A1"));
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> turmaService.ofertarTurma("", "P001", periodo, 30, "08:00-10:00", "Sala A1"));
     }
 
     @Test
     @Order(15)
     void deveRejeitarTurmaComMatriculaProfessorVazia() {
         PeriodoLetivo periodo = periodoLetivoService.buscarPorIdentificador("2024.1");
-        
-        assertThrows(IllegalArgumentException.class, () ->
-                turmaService.ofertarTurma("CC101", "", periodo, 30, "08:00-10:00", "Sala A1"));
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () ->
+                        turmaService.ofertarTurma(
+                                "CC101", "", periodo, 30, "08:00-10:00", "Sala A1"));
     }
 }
-
-

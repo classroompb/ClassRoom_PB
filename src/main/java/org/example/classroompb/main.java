@@ -1,4 +1,3 @@
 package org.example.classroompb;
 
-public class main {
-}
+public class main {}

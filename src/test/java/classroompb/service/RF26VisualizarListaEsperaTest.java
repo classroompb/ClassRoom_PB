@@ -1,5 +1,9 @@
 package classroompb.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.ArrayList;
+import java.util.List;
 import org.example.classroompb.model.Disciplina;
 import org.example.classroompb.model.ItemListaEspera;
 import org.example.classroompb.model.PeriodoLetivo;
@@ -16,14 +20,9 @@ import org.example.classroompb.service.UsuarioService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 /**
- * RF26: O coordenador deve poder visualizar a lista de espera de cada turma,
- * com a posição, matrícula e nome dos alunos, respeitando a ordem (RF25).
+ * RF26: O coordenador deve poder visualizar a lista de espera de cada turma, com a posição,
+ * matrícula e nome dos alunos, respeitando a ordem (RF25).
  */
 class RF26VisualizarListaEsperaTest {
 
@@ -32,26 +31,62 @@ class RF26VisualizarListaEsperaTest {
 
     static class TurmaRepositorioFake extends TurmaRepository {
         private final List<Turma> lista = new ArrayList<>();
-        @Override public List<Turma> carregarTodos() { return new ArrayList<>(lista); }
-        @Override public void salvarTodos(List<Turma> turmas) { lista.clear(); lista.addAll(turmas); }
+
+        @Override
+        public List<Turma> carregarTodos() {
+            return new ArrayList<>(lista);
+        }
+
+        @Override
+        public void salvarTodos(List<Turma> turmas) {
+            lista.clear();
+            lista.addAll(turmas);
+        }
     }
 
     static class UsuarioRepositorioFake extends UsuarioRepository {
         private final List<Usuario> lista = new ArrayList<>();
-        @Override public List<Usuario> carregarTodos() { return new ArrayList<>(lista); }
-        @Override public void salvarTodos(List<Usuario> usuarios) { lista.clear(); lista.addAll(usuarios); }
+
+        @Override
+        public List<Usuario> carregarTodos() {
+            return new ArrayList<>(lista);
+        }
+
+        @Override
+        public void salvarTodos(List<Usuario> usuarios) {
+            lista.clear();
+            lista.addAll(usuarios);
+        }
     }
 
     static class DisciplinaRepositorioFake extends DisciplinaRepository {
         private final List<Disciplina> lista = new ArrayList<>();
-        @Override public List<Disciplina> carregarTodos() { return new ArrayList<>(lista); }
-        @Override public void salvarTodos(List<Disciplina> disciplinas) { lista.clear(); lista.addAll(disciplinas); }
+
+        @Override
+        public List<Disciplina> carregarTodos() {
+            return new ArrayList<>(lista);
+        }
+
+        @Override
+        public void salvarTodos(List<Disciplina> disciplinas) {
+            lista.clear();
+            lista.addAll(disciplinas);
+        }
     }
 
     static class PeriodoLetivoRepositorioFake extends PeriodoLetivoRepository {
         private final List<PeriodoLetivo> lista = new ArrayList<>();
-        @Override public List<PeriodoLetivo> carregarTodos() { return new ArrayList<>(lista); }
-        @Override public void salvarTodos(List<PeriodoLetivo> periodos) { lista.clear(); lista.addAll(periodos); }
+
+        @Override
+        public List<PeriodoLetivo> carregarTodos() {
+            return new ArrayList<>(lista);
+        }
+
+        @Override
+        public void salvarTodos(List<PeriodoLetivo> periodos) {
+            lista.clear();
+            lista.addAll(periodos);
+        }
     }
 
     @BeforeEach
@@ -79,7 +114,8 @@ class RF26VisualizarListaEsperaTest {
 
     @Test
     void deveVisualizarListaDeEsperaComPosicaoMatriculaENome() {
-        Turma turma = turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
+        Turma turma =
+                turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
         turmaService.solicitarMatricula(turma.getCodigo(), "A001"); // matriculado
         turmaService.solicitarMatricula(turma.getCodigo(), "A002"); // fila 1
         turmaService.solicitarMatricula(turma.getCodigo(), "A003"); // fila 2
@@ -99,7 +135,8 @@ class RF26VisualizarListaEsperaTest {
 
     @Test
     void deveRetornarListaVaziaQuandoNaoHaEspera() {
-        Turma turma = turmaService.ofertarTurma("CC101", "P001", periodo, 5, "08:00-10:00", "Sala A1");
+        Turma turma =
+                turmaService.ofertarTurma("CC101", "P001", periodo, 5, "08:00-10:00", "Sala A1");
         turmaService.solicitarMatricula(turma.getCodigo(), "A001");
 
         List<ItemListaEspera> fila = turmaService.visualizarListaDeEspera(turma.getCodigo());
@@ -108,19 +145,22 @@ class RF26VisualizarListaEsperaTest {
 
     @Test
     void deveLancarErroAoVisualizarTurmaInexistente() {
-        assertThrows(IllegalArgumentException.class, () ->
-                turmaService.visualizarListaDeEspera("INEXISTENTE"));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> turmaService.visualizarListaDeEspera("INEXISTENTE"));
     }
 
     @Test
     void deveListarApenasTurmasComListaDeEspera() {
         // Turma 1: cheia, com fila
-        Turma turma1 = turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
+        Turma turma1 =
+                turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
         turmaService.solicitarMatricula(turma1.getCodigo(), "A001");
         turmaService.solicitarMatricula(turma1.getCodigo(), "A002");
 
         // Turma 2: com vaga, sem fila
-        Turma turma2 = turmaService.ofertarTurma("CC101", "P001", periodo, 5, "10:00-12:00", "Sala A2");
+        Turma turma2 =
+                turmaService.ofertarTurma("CC101", "P001", periodo, 5, "10:00-12:00", "Sala A2");
         turmaService.solicitarMatricula(turma2.getCodigo(), "A003");
 
         List<Turma> comEspera = turmaService.listarTurmasComListaDeEspera();
@@ -131,7 +171,8 @@ class RF26VisualizarListaEsperaTest {
 
     @Test
     void visualizacaoDeveRefletirOrdemAposPromocaoAutomatica() {
-        Turma turma = turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
+        Turma turma =
+                turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
         turmaService.solicitarMatricula(turma.getCodigo(), "A001");
         turmaService.solicitarMatricula(turma.getCodigo(), "A002");
         turmaService.solicitarMatricula(turma.getCodigo(), "A003");
