@@ -20,11 +20,29 @@ public class AvaliacaoService {
 
     private final AvaliacaoRepository repository;
     private final TurmaService turmaService;
+    private final FrequenciaService frequenciaService;
     private List<Avaliacao> avaliacoes;
 
+    /**
+     * Construtor sem frequência por registros. A frequência usada na situação final é a que for
+     * informada via {@link #registrarFrequencia(String, String, double)}.
+     */
     public AvaliacaoService(AvaliacaoRepository repository, TurmaService turmaService) {
+        this(repository, turmaService, null);
+    }
+
+    /**
+     * Construtor integrado ao RF27. Quando o aluno tem registros de presença/falta lançados, a
+     * frequência da situação final passa a ser derivada desses registros em vez do percentual
+     * digitado à mão. É assim que o CLI monta o serviço.
+     */
+    public AvaliacaoService(
+            AvaliacaoRepository repository,
+            TurmaService turmaService,
+            FrequenciaService frequenciaService) {
         this.repository = repository;
         this.turmaService = turmaService;
+        this.frequenciaService = frequenciaService;
         this.avaliacoes = repository.carregarTodos();
     }
 
@@ -54,11 +72,30 @@ public class AvaliacaoService {
         repository.salvarTodos(avaliacoes);
     }
 
-    // Registra a frequência (0..100) do aluno na turma; base do cálculo da situação (RF33)
+    /**
+     * Registra a frequência (0..100) do aluno na turma informando o percentual direto.
+     *
+     * <p>Usar só quando não há registros de aula do RF27. Se houver, o {@link
+     * #definirSituacaoFinal(String, String)} recalcula a frequência a partir deles e sobrescreve o
+     * valor gravado aqui, porque os registros são a fonte de verdade.
+     */
     public void registrarFrequencia(String codigoTurma, String matriculaAluno, double percentual) {
         Avaliacao avaliacao = obterOuCriarAvaliacao(codigoTurma, matriculaAluno);
         avaliacao.setFrequencia(percentual);
         repository.salvarTodos(avaliacoes);
+    }
+
+    /**
+     * Frequência que vale para a situação final. Se o aluno tem registros de presença/falta (RF27),
+     * o percentual vem deles. Se não tem, vale o que foi informado à mão.
+     */
+    private double frequenciaVigente(Avaliacao avaliacao) {
+        String turma = avaliacao.getCodigoTurma();
+        String aluno = avaliacao.getMatriculaAluno();
+        if (frequenciaService != null && frequenciaService.temRegistros(turma, aluno)) {
+            return frequenciaService.calcularPercentualFrequencia(turma, aluno);
+        }
+        return avaliacao.getFrequencia();
     }
 
     // RF32 - Média final do aluno (média aritmética das notas lançadas)
@@ -75,8 +112,12 @@ public class AvaliacaoService {
                             + matriculaAluno
                             + ".");
         }
-        SituacaoFinal situacao =
-                calcularSituacao(avaliacao.calcularMedia(), avaliacao.getFrequencia());
+        // RF27: se o professor lançou presença/falta, a frequência real prevalece sobre o
+        // percentual informado à mão. Grava de volta para o campo não ficar mentindo.
+        double frequencia = frequenciaVigente(avaliacao);
+        avaliacao.setFrequencia(frequencia);
+
+        SituacaoFinal situacao = calcularSituacao(avaliacao.calcularMedia(), frequencia);
         avaliacao.setSituacao(situacao);
         repository.salvarTodos(avaliacoes);
         return situacao;
