@@ -5,8 +5,10 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Scanner;
 import java.util.function.Predicate;
+
 import org.example.classroompb.model.Avaliacao;
 import org.example.classroompb.model.Curso;
+import org.example.classroompb.model.ItemHistoricoAcademico;
 import org.example.classroompb.model.ItemListaEspera;
 import org.example.classroompb.model.PeriodoLetivo;
 import org.example.classroompb.model.RegistroFrequencia;
@@ -329,6 +331,12 @@ public class CLI {
         // RF22/RF23 - Aluno cancela matrícula (com validação de prazo)
         if (usuarioLogado.getTipo() == TipoUsuario.ALUNO && opcao.equals("6")) {
             cancelarMatriculaEmTurma();
+            return;
+        }
+
+        // RF37 - Aluno consulta seu histórico acadêmico
+        if (usuarioLogado.getTipo() == TipoUsuario.ALUNO && opcao.equals("5")) {
+            consultarHistoricoAcademico();
             return;
         }
 
@@ -1289,6 +1297,42 @@ public class CLI {
             } catch (IllegalArgumentException e) {
                 System.out.println("   Erro: " + e.getMessage());
             }
+        }
+    }
+
+    /**
+     * RF37 - O aluno consulta seu histórico acadêmico: disciplinas cursadas, notas, média e
+     * situação, agrupadas por período letivo.
+     */
+    private void consultarHistoricoAcademico() {
+        List<ItemHistoricoAcademico> historico =
+                avaliacaoService.consultarHistoricoAcademico(usuarioLogado.getMatricula());
+
+        if (historico.isEmpty()) {
+            System.out.println("\nNenhum registro encontrado no seu histórico acadêmico.");
+            return;
+        }
+
+        System.out.println("\n=== Histórico Acadêmico  " + usuarioLogado.getNome() + " ===");
+
+        String periodoAtual = null;
+        for (ItemHistoricoAcademico item : historico) {
+            if (!item.periodoLetivo().equals(periodoAtual)) {
+                periodoAtual = item.periodoLetivo();
+                System.out.println("\nPeríodo " + periodoAtual + ":");
+            }
+            System.out.println(
+                    "   "
+                            + item.codigoDisciplina()
+                            + " - "
+                            + item.nomeDisciplina()
+                            + " ("
+                            + item.codigoTurma()
+                            + ")");
+            System.out.println("      Notas: " + item.notas());
+            System.out.printf("      Média: %.2f%n", item.media());
+            System.out.printf("      Frequência: %.1f%%%n", item.frequencia());
+            System.out.println("      Situação: " + item.situacao());
         }
     }
 
