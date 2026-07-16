@@ -1,7 +1,12 @@
 package org.example.classroompb.service;
 
 import java.util.List;
-import org.example.classroompb.model.*;
+import org.example.classroompb.model.Administrador;
+import org.example.classroompb.model.Aluno;
+import org.example.classroompb.model.Coordenador;
+import org.example.classroompb.model.Professor;
+import org.example.classroompb.model.TipoUsuario;
+import org.example.classroompb.model.Usuario;
 import org.example.classroompb.repository.UsuarioRepository;
 
 public class UsuarioService {
@@ -90,6 +95,7 @@ public class UsuarioService {
                     4. Acompanhar alunos
                     5. Alterar notas (antes do fechamento)
                     6. Fechar notas de uma turma
+                    7. Emitir relatorio da turma
                     0. Sair
                     """;
             case COORDENADOR ->

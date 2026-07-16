@@ -5,11 +5,11 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Scanner;
 import java.util.function.Predicate;
-
 import org.example.classroompb.model.Avaliacao;
 import org.example.classroompb.model.Curso;
 import org.example.classroompb.model.ItemHistoricoAcademico;
 import org.example.classroompb.model.ItemListaEspera;
+import org.example.classroompb.model.ItemRelatorioTurma;
 import org.example.classroompb.model.PeriodoLetivo;
 import org.example.classroompb.model.RegistroFrequencia;
 import org.example.classroompb.model.SituacaoFinal;
@@ -334,12 +334,6 @@ public class CLI {
             return;
         }
 
-        // RF37 - Aluno consulta seu histórico acadêmico
-        if (usuarioLogado.getTipo() == TipoUsuario.ALUNO && opcao.equals("5")) {
-            consultarHistoricoAcademico();
-            return;
-        }
-
         // RF31 - Professor lança notas dos alunos de uma turma
         if (usuarioLogado.getTipo() == TipoUsuario.PROFESSOR && opcao.equals("3")) {
             lancarNotas();
@@ -361,6 +355,18 @@ public class CLI {
         // RF36 - Professor fecha as notas de uma turma
         if (usuarioLogado.getTipo() == TipoUsuario.PROFESSOR && opcao.equals("6")) {
             fecharNotasTurma();
+            return;
+        }
+
+        // RF37 - Aluno consulta seu histórico acadêmico
+        if (usuarioLogado.getTipo() == TipoUsuario.ALUNO && opcao.equals("5")) {
+            consultarHistoricoAcademico();
+            return;
+        }
+
+        // RF38 - O professor pode emitir o relatório da turma
+        if (usuarioLogado.getTipo() == TipoUsuario.PROFESSOR && opcao.equals("7")) {
+            emitirRelatorioTurma();
             return;
         }
 
@@ -1333,6 +1339,33 @@ public class CLI {
             System.out.printf("      Média: %.2f%n", item.media());
             System.out.printf("      Frequência: %.1f%%%n", item.frequencia());
             System.out.println("      Situação: " + item.situacao());
+        }
+    }
+
+    private void emitirRelatorioTurma() {
+        System.out.print("Código da turma: ");
+        String codigoTurma = scanner.nextLine();
+
+        List<ItemRelatorioTurma> relatorio = avaliacaoService.emitirRelatorioTurma(codigoTurma);
+
+        if (relatorio.isEmpty()) {
+            System.out.println("\nNenhum registro encontrado para esta turma.");
+            return;
+        }
+
+        System.out.println("\n=== RELATÓRIO DA TURMA " + codigoTurma + " ===");
+
+        for (ItemRelatorioTurma item : relatorio) {
+
+            System.out.println("\nAluno: " + item.matriculaAluno());
+
+            System.out.println("   Notas: " + item.notas());
+
+            System.out.printf("   Média: %.2f%n", item.media());
+
+            System.out.printf("   Frequência: %.1f%%%n", item.frequencia());
+
+            System.out.println("   Situação: " + item.situacao() + "\n");
         }
     }
 

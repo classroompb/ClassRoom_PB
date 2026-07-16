@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.example.classroompb.model.Avaliacao;
 import org.example.classroompb.model.Disciplina;
-import org.example.classroompb.model.ItemHistoricoAcademico;
+import org.example.classroompb.model.ItemRelatorioTurma;
 import org.example.classroompb.model.PeriodoLetivo;
 import org.example.classroompb.model.SituacaoFinal;
 import org.example.classroompb.model.Turma;
@@ -27,10 +27,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * RF37 — o aluno deve poder consultar seu histórico acadêmico: disciplinas cursadas, notas, média e
- * situação por período. Depende do model {@code ItemHistoricoAcademico} (task D1).
+ * RF38 — Professor deve emitir relatório da turma contendo alunos matriculados, notas, média,
+ * frequência e situação final.
  */
-class RF37HistoricoAcademicoTest {
+class RF38RelatorioTurmaTest {
 
     private AvaliacaoService avaliacaoService;
     private TurmaService turmaService;
@@ -118,51 +118,67 @@ class RF37HistoricoAcademicoTest {
         usuarioService = new UsuarioService(new UsuarioRepositorioFake());
         disciplinaService = new DisciplinaService(new DisciplinaRepositorioFake());
         periodoLetivoService = new PeriodoLetivoService(new PeriodoLetivoRepositorioFake());
+
         turmaService =
                 new TurmaService(new TurmaRepositorioFake(), usuarioService, disciplinaService);
+
         avaliacaoService = new AvaliacaoService(new AvaliacaoRepositorioFake(), turmaService);
 
         usuarioService.cadastrar("PROFESSOR", "Prof. Ana", "P001", "ana@example.com", "1234");
+
         usuarioService.cadastrar("ALUNO", "Aluno 1", "A001", "aluno1@example.com", "1234");
 
         disciplinaService.cadastrar("CC101", "Programacao I", 60, 4);
+
         disciplinaService.cadastrar("CC102", "Estrutura de Dados", 60, 4);
 
         periodoLetivoService.cadastrar("2025.2");
-        periodoLetivoService.cadastrar("2026.1");
     }
 
     private Turma ofertarEMatricular(
             String codigoDisciplina, String identificadorPeriodo, String horario) {
+
         PeriodoLetivo periodo = periodoLetivoService.buscarPorIdentificador(identificadorPeriodo);
+
         Turma turma =
                 turmaService.ofertarTurma(codigoDisciplina, "P001", periodo, 5, horario, "Sala A1");
+
         turmaService.solicitarMatricula(turma.getCodigo(), "A001");
+
         return turma;
     }
 
     @Test
-    void deveRetornarHistoricoVazioQuandoAlunoNaoTemAvaliacoes() {
-        List<ItemHistoricoAcademico> historico =
-                avaliacaoService.consultarHistoricoAcademico("A001");
-        assertTrue(historico.isEmpty());
+    void deveRetornarRelatorioVazioQuandoTurmaNaoTemAvaliacoes() {
+
+        Turma turma = ofertarEMatricular("CC101", "2025.2", "08:00-10:00");
+
+        List<ItemRelatorioTurma> relatorio =
+                avaliacaoService.emitirRelatorioTurma(turma.getCodigo());
+
+        assertTrue(relatorio.isEmpty());
     }
 
     @Test
-    void deveListarDisciplinaCursadaComNotasMediaESituacao() {
+    void deveEmitirRelatorioComNotasMediaFrequenciaESituacao() {
         Turma turma = ofertarEMatricular("CC101", "2025.2", "08:00-10:00");
+
         avaliacaoService.lancarNota(turma.getCodigo(), "A001", 8.0);
+
         avaliacaoService.lancarNota(turma.getCodigo(), "A001", 6.0);
+
         avaliacaoService.registrarFrequencia(turma.getCodigo(), "A001", 90.0);
+
         avaliacaoService.definirSituacaoFinal(turma.getCodigo(), "A001");
 
-        List<ItemHistoricoAcademico> historico =
-                avaliacaoService.consultarHistoricoAcademico("A001");
+        List<ItemRelatorioTurma> relatorio =
+                avaliacaoService.emitirRelatorioTurma(turma.getCodigo());
 
-        assertEquals(1, historico.size());
-        ItemHistoricoAcademico item = historico.get(0);
-        assertEquals("2025.2", item.periodoLetivo());
-        assertEquals("CC101", item.codigoDisciplina());
+        assertEquals(1, relatorio.size());
+
+        ItemRelatorioTurma item = relatorio.get(0);
+
+        assertEquals("A001", item.matriculaAluno());
         assertEquals(List.of(8.0, 6.0), item.notas());
         assertEquals(7.0, item.media(), 0.0001);
         assertEquals(90.0, item.frequencia(), 0.0001);
@@ -170,45 +186,44 @@ class RF37HistoricoAcademicoTest {
     }
 
     @Test
-    void deveAgruparEOrdenarPorPeriodoLetivo() {
-        Turma turmaAntiga = ofertarEMatricular("CC101", "2025.2", "08:00-10:00");
-        avaliacaoService.lancarNota(turmaAntiga.getCodigo(), "A001", 9.0);
-        avaliacaoService.registrarFrequencia(turmaAntiga.getCodigo(), "A001", 95.0);
-        avaliacaoService.definirSituacaoFinal(turmaAntiga.getCodigo(), "A001");
-
-        Turma turmaAtual = ofertarEMatricular("CC102", "2026.1", "10:00-12:00");
-        avaliacaoService.lancarNota(turmaAtual.getCodigo(), "A001", 3.0);
-        avaliacaoService.registrarFrequencia(turmaAtual.getCodigo(), "A001", 80.0);
-        avaliacaoService.definirSituacaoFinal(turmaAtual.getCodigo(), "A001");
-
-        List<ItemHistoricoAcademico> historico =
-                avaliacaoService.consultarHistoricoAcademico("A001");
-
-        assertEquals(2, historico.size());
-        assertEquals("2025.2", historico.get(0).periodoLetivo());
-        assertEquals(SituacaoFinal.APROVADO, historico.get(0).situacao());
-        assertEquals("2026.1", historico.get(1).periodoLetivo());
-        assertEquals(SituacaoFinal.REPROVADO_POR_NOTA, historico.get(1).situacao());
-    }
-
-    @Test
-    void naoDeveMostrarDisciplinaDeOutroAluno() {
+    void deveRetornarSomenteAlunosDaTurmaInformada() {
         usuarioService.cadastrar("ALUNO", "Aluno 2", "A002", "aluno2@example.com", "1234");
-        Turma turma = ofertarEMatricular("CC101", "2025.2", "08:00-10:00");
-        turmaService.solicitarMatricula(turma.getCodigo(), "A002");
 
-        avaliacaoService.lancarNota(turma.getCodigo(), "A002", 10.0);
-        avaliacaoService.registrarFrequencia(turma.getCodigo(), "A002", 100.0);
-        avaliacaoService.definirSituacaoFinal(turma.getCodigo(), "A002");
+        Turma turma1 = ofertarEMatricular("CC101", "2025.2", "08:00-10:00");
 
-        assertTrue(avaliacaoService.consultarHistoricoAcademico("A001").isEmpty());
-        assertEquals(1, avaliacaoService.consultarHistoricoAcademico("A002").size());
+        Turma turma2 =
+                turmaService.ofertarTurma(
+                        "CC102",
+                        "P001",
+                        periodoLetivoService.buscarPorIdentificador("2025.2"),
+                        5,
+                        "10:00-12:00",
+                        "Sala A2");
+
+        turmaService.solicitarMatricula(turma2.getCodigo(), "A002");
+
+        avaliacaoService.lancarNota(turma1.getCodigo(), "A001", 8.0);
+
+        avaliacaoService.registrarFrequencia(turma1.getCodigo(), "A001", 90.0);
+
+        avaliacaoService.definirSituacaoFinal(turma1.getCodigo(), "A001");
+
+        avaliacaoService.lancarNota(turma2.getCodigo(), "A002", 10.0);
+
+        avaliacaoService.registrarFrequencia(turma2.getCodigo(), "A002", 100.0);
+
+        avaliacaoService.definirSituacaoFinal(turma2.getCodigo(), "A002");
+
+        List<ItemRelatorioTurma> relatorio =
+                avaliacaoService.emitirRelatorioTurma(turma1.getCodigo());
+
+        assertEquals(1, relatorio.size());
+        assertEquals("A001", relatorio.get(0).matriculaAluno());
     }
 
     @Test
-    void deveRejeitarMatriculaVazia() {
+    void deveRejeitarCodigoTurmaVazio() {
         assertThrows(
-                IllegalArgumentException.class,
-                () -> avaliacaoService.consultarHistoricoAcademico(" "));
+                IllegalArgumentException.class, () -> avaliacaoService.emitirRelatorioTurma(" "));
     }
 }

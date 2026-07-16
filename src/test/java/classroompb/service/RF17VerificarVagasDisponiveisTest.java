@@ -1,5 +1,12 @@
 package classroompb.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.ArrayList;
+import java.util.List;
 import org.example.classroompb.model.Disciplina;
 import org.example.classroompb.model.PeriodoLetivo;
 import org.example.classroompb.model.Turma;
@@ -15,14 +22,6 @@ import org.example.classroompb.service.UsuarioService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 // ===== INICIO TESTES RF17: Verificacao de vagas disponiveis =====
 class RF17VerificarVagasDisponiveisTest {
 
@@ -33,26 +32,62 @@ class RF17VerificarVagasDisponiveisTest {
 
     static class TurmaRepositorioFake extends TurmaRepository {
         private final List<Turma> lista = new ArrayList<>();
-        @Override public List<Turma> carregarTodos() { return new ArrayList<>(lista); }
-        @Override public void salvarTodos(List<Turma> turmas) { lista.clear(); lista.addAll(turmas); }
+
+        @Override
+        public List<Turma> carregarTodos() {
+            return new ArrayList<>(lista);
+        }
+
+        @Override
+        public void salvarTodos(List<Turma> turmas) {
+            lista.clear();
+            lista.addAll(turmas);
+        }
     }
 
     static class UsuarioRepositorioFake extends UsuarioRepository {
         private final List<Usuario> lista = new ArrayList<>();
-        @Override public List<Usuario> carregarTodos() { return new ArrayList<>(lista); }
-        @Override public void salvarTodos(List<Usuario> usuarios) { lista.clear(); lista.addAll(usuarios); }
+
+        @Override
+        public List<Usuario> carregarTodos() {
+            return new ArrayList<>(lista);
+        }
+
+        @Override
+        public void salvarTodos(List<Usuario> usuarios) {
+            lista.clear();
+            lista.addAll(usuarios);
+        }
     }
 
     static class DisciplinaRepositorioFake extends DisciplinaRepository {
         private final List<Disciplina> lista = new ArrayList<>();
-        @Override public List<Disciplina> carregarTodos() { return new ArrayList<>(lista); }
-        @Override public void salvarTodos(List<Disciplina> disciplinas) { lista.clear(); lista.addAll(disciplinas); }
+
+        @Override
+        public List<Disciplina> carregarTodos() {
+            return new ArrayList<>(lista);
+        }
+
+        @Override
+        public void salvarTodos(List<Disciplina> disciplinas) {
+            lista.clear();
+            lista.addAll(disciplinas);
+        }
     }
 
     static class PeriodoLetivoRepositorioFake extends PeriodoLetivoRepository {
         private final List<PeriodoLetivo> lista = new ArrayList<>();
-        @Override public List<PeriodoLetivo> carregarTodos() { return new ArrayList<>(lista); }
-        @Override public void salvarTodos(List<PeriodoLetivo> periodos) { lista.clear(); lista.addAll(periodos); }
+
+        @Override
+        public List<PeriodoLetivo> carregarTodos() {
+            return new ArrayList<>(lista);
+        }
+
+        @Override
+        public void salvarTodos(List<PeriodoLetivo> periodos) {
+            lista.clear();
+            lista.addAll(periodos);
+        }
     }
 
     @BeforeEach
@@ -78,7 +113,8 @@ class RF17VerificarVagasDisponiveisTest {
 
     @Test
     void deveVerificarQuandoHaVagasDisponiveis() {
-        Turma turma = turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
+        Turma turma =
+                turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
 
         assertTrue(turmaService.verificarVagasDisponiveis(turma.getCodigo()));
         assertEquals(1, turmaService.consultarQuantidadeVagasDisponiveis(turma.getCodigo()));
@@ -86,7 +122,8 @@ class RF17VerificarVagasDisponiveisTest {
 
     @Test
     void deveVerificarQuandoNaoHaVagasDisponiveis() {
-        Turma turma = turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
+        Turma turma =
+                turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
 
         turmaService.solicitarMatricula(turma.getCodigo(), "A001");
 
@@ -96,14 +133,16 @@ class RF17VerificarVagasDisponiveisTest {
 
     @Test
     void deveRejeitarVerificacaoDeTurmaInexistente() {
-        assertThrows(IllegalArgumentException.class, () ->
-                turmaService.verificarVagasDisponiveis("TURMA-INEXISTENTE"));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> turmaService.verificarVagasDisponiveis("TURMA-INEXISTENTE"));
     }
 
     @Test
     void deveColocarAlunoEmListaDeEsperaQuandoTurmaNaoTemVagas() {
         usuarioService.cadastrar("ALUNO", "Aluno 2", "A002", "aluno2@example.com", "1234");
-        Turma turma = turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
+        Turma turma =
+                turmaService.ofertarTurma("CC101", "P001", periodo, 1, "08:00-10:00", "Sala A1");
 
         turmaService.solicitarMatricula(turma.getCodigo(), "A001"); // ocupa a unica vaga
 

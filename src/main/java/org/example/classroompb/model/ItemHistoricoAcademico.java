@@ -4,8 +4,8 @@ import java.util.List;
 
 /**
  * RF37 (task D1): Representa uma entrada do histórico acadêmico de um aluno — uma disciplina
- * cursada em um determinado período letivo, com as notas lançadas, a média (RF32), a frequência e
- * a situação final (RF33).
+ * cursada em um determinado período letivo, com as notas lançadas, a média (RF32), a frequência e a
+ * situação final (RF33).
  *
  * <p>É a unidade usada para montar o histórico completo do aluno (RF37), agrupando as disciplinas
  * cursadas por período letivo.
