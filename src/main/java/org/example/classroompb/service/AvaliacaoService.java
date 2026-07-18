@@ -3,7 +3,10 @@ package org.example.classroompb.service;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.example.classroompb.model.Aluno;
 import org.example.classroompb.model.Avaliacao;
+import org.example.classroompb.model.HistoricoAlunoCurso;
 import org.example.classroompb.model.ItemHistoricoAcademico;
 import org.example.classroompb.model.ItemRelatorioTurma;
 import org.example.classroompb.model.SituacaoFinal;
@@ -272,6 +275,31 @@ public class AvaliacaoService {
                 avaliacao.calcularMedia(),
                 frequencia,
                 avaliacao.getSituacao());
+    }
+
+    /**
+     * RF39 - O coordenador deve poder consultar o histórico dos alunos do curso.
+     *
+     * <p>Não recebe o código do curso diretamente: quem resolve "quais alunos pertencem a este
+     * curso" é a {@code UsuarioService} (via {@code listarAlunosPorCurso}), mantendo esta classe
+     * sem uma dependência nova. Aqui só reaproveitamos o {@link
+     * #consultarHistoricoAcademico(String)} do RF37 para cada aluno da lista, agrupando o
+     * resultado em {@link HistoricoAlunoCurso}. Alunos sem nenhum item de histórico ainda aparecem
+     * no resultado, com a lista de itens vazia.
+     */
+    public List<HistoricoAlunoCurso> consultarHistoricoPorCurso(List<Aluno> alunosDoCurso) {
+        if (alunosDoCurso == null) {
+            throw new IllegalArgumentException("Lista de alunos do curso não pode ser nula.");
+        }
+
+        return alunosDoCurso.stream()
+                .map(
+                        aluno ->
+                                new HistoricoAlunoCurso(
+                                        aluno.getMatricula(),
+                                        aluno.getNome(),
+                                        consultarHistoricoAcademico(aluno.getMatricula())))
+                .collect(Collectors.toList());
     }
 
     public List<ItemRelatorioTurma> emitirRelatorioTurma(String codigoTurma) {

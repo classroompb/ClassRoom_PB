@@ -5,8 +5,11 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Scanner;
 import java.util.function.Predicate;
+
+import org.example.classroompb.model.Aluno;
 import org.example.classroompb.model.Avaliacao;
 import org.example.classroompb.model.Curso;
+import org.example.classroompb.model.HistoricoAlunoCurso;
 import org.example.classroompb.model.ItemHistoricoAcademico;
 import org.example.classroompb.model.ItemListaEspera;
 import org.example.classroompb.model.ItemRelatorioTurma;
@@ -157,8 +160,38 @@ public class CLI {
         try {
             Usuario u = usuarioService.cadastrar(tipo, nome, matricula, email, senha);
             System.out.println("Usuário cadastrado com sucesso: " + u);
+
+            // RF39 - Se for aluno, oferece vincular a um curso agora (pode ser feito depois)
+            if (tipo.equalsIgnoreCase("ALUNO")) {
+                vincularCursoAoAlunoCadastrado(matricula);
+            }
         } catch (IllegalArgumentException e) {
             System.out.println("Erro: " + e.getMessage());
+        }
+    }
+
+    /**
+     * RF39 - Pergunta o código do curso do aluno recém-cadastrado e vincula, se informado. Campo
+     * opcional: ENTER em branco pula a etapa sem cancelar o cadastro já feito.
+     */
+    private void vincularCursoAoAlunoCadastrado(String matriculaAluno) {
+        System.out.print("Código do curso do aluno (ENTER para pular): ");
+        String codigoCurso = scanner.nextLine().trim();
+        if (codigoCurso.isEmpty()) {
+            return;
+        }
+        if (cursoService.buscarPorCodigo(codigoCurso) == null) {
+            System.out.println(
+                    "Curso não encontrado: "
+                            + codigoCurso
+                            + ". O aluno foi cadastrado sem curso vinculado.");
+            return;
+        }
+        try {
+            usuarioService.vincularAlunoACurso(matriculaAluno, codigoCurso);
+            System.out.println("Aluno vinculado ao curso " + codigoCurso + " com sucesso.");
+        } catch (IllegalArgumentException e) {
+            System.out.println("Erro ao vincular curso: " + e.getMessage());
         }
     }
 
@@ -307,6 +340,18 @@ public class CLI {
         // RF26 - Coordenador visualiza a lista de espera das turmas
         if (usuarioLogado.getTipo() == TipoUsuario.COORDENADOR && opcao.equals("8")) {
             visualizarListaEsperaTurmas();
+            return;
+        }
+
+        // RF39 - Coordenador consulta o histórico dos alunos do curso
+        if (usuarioLogado.getTipo() == TipoUsuario.COORDENADOR && opcao.equals("9")) {
+            consultarHistoricoAlunosDoCurso();
+            return;
+        }
+
+        // RF39 - Coordenador vincula um aluno já cadastrado a um curso
+        if (usuarioLogado.getTipo() == TipoUsuario.COORDENADOR && opcao.equals("11")) {
+            vincularAlunoACurso();
             return;
         }
 
@@ -1339,6 +1384,79 @@ public class CLI {
             System.out.printf("      Média: %.2f%n", item.media());
             System.out.printf("      Frequência: %.1f%%%n", item.frequencia());
             System.out.println("      Situação: " + item.situacao());
+        }
+    }
+
+    /** RF39 - Coordenador vincula um aluno já cadastrado a um curso. */
+    private void vincularAlunoACurso() {
+        System.out.print("Matrícula do aluno: ");
+        String matricula = scanner.nextLine().trim();
+
+        System.out.print("Código do curso: ");
+        String codigoCurso = scanner.nextLine().trim();
+
+        if (cursoService.buscarPorCodigo(codigoCurso) == null) {
+            System.out.println("Erro: curso não encontrado: " + codigoCurso);
+            return;
+        }
+
+        try {
+            usuarioService.vincularAlunoACurso(matricula, codigoCurso);
+            System.out.println("Aluno " + matricula + " vinculado ao curso " + codigoCurso + ".");
+        } catch (IllegalArgumentException e) {
+            System.out.println("Erro: " + e.getMessage());
+        }
+    }
+
+    /**
+     * RF39 - O coordenador consulta o histórico acadêmico de todos os alunos de um curso.
+     */
+    private void consultarHistoricoAlunosDoCurso() {
+        System.out.print("Código do curso: ");
+        String codigoCurso = scanner.nextLine().trim();
+
+        if (cursoService.buscarPorCodigo(codigoCurso) == null) {
+            System.out.println("Erro: curso não encontrado: " + codigoCurso);
+            return;
+        }
+
+        List<Aluno> alunosDoCurso = usuarioService.listarAlunosPorCurso(codigoCurso);
+        if (alunosDoCurso.isEmpty()) {
+            System.out.println("\nNenhum aluno vinculado a este curso.");
+            return;
+        }
+
+        List<HistoricoAlunoCurso> historicos =
+                avaliacaoService.consultarHistoricoPorCurso(alunosDoCurso);
+
+        System.out.println("\n=== HISTÓRICO DOS ALUNOS DO CURSO " + codigoCurso + " ===");
+        for (HistoricoAlunoCurso historico : historicos) {
+            System.out.println("\nAluno: " + historico.nomeAluno() + " (" + historico.matriculaAluno() + ")");
+
+            if (historico.itens().isEmpty()) {
+                System.out.println("   Nenhum registro encontrado no histórico.");
+                continue;
+            }
+
+            String periodoAtual = null;
+            for (ItemHistoricoAcademico item : historico.itens()) {
+                if (!item.periodoLetivo().equals(periodoAtual)) {
+                    periodoAtual = item.periodoLetivo();
+                    System.out.println("   Período " + periodoAtual + ":");
+                }
+                System.out.println(
+                        "      "
+                                + item.codigoDisciplina()
+                                + " - "
+                                + item.nomeDisciplina()
+                                + " ("
+                                + item.codigoTurma()
+                                + ")");
+                System.out.println("         Notas: " + item.notas());
+                System.out.printf("         Média: %.2f%n", item.media());
+                System.out.printf("         Frequência: %.1f%%%n", item.frequencia());
+                System.out.println("         Situação: " + item.situacao());
+            }
         }
     }
 

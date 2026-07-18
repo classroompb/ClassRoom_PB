@@ -1,6 +1,7 @@
 package org.example.classroompb.service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import org.example.classroompb.model.Administrador;
 import org.example.classroompb.model.Aluno;
 import org.example.classroompb.model.Coordenador;
@@ -109,7 +110,9 @@ public class UsuarioService {
                     6. Gerenciar turmas (alterar/cancelar)
                     7. Configurar datas do período letivo (RF22)
                     8. Visualizar lista de espera das turmas (RF26)
+                    9. Consultar histórico dos alunos do curso (RF39)
                     10. Adicionar pré-requisito em disciplina
+                    11. Vincular aluno a um curso (RF39)
                     0. Sair
                     """;
             case ADMINISTRADOR ->
@@ -141,6 +144,35 @@ public class UsuarioService {
                 .filter(u -> u.getEmail().equalsIgnoreCase(email))
                 .findFirst()
                 .orElse(null);
+    }
+
+    // RF39 - Vincula um aluno já cadastrado a um curso, para permitir a consulta do coordenador
+    public void vincularAlunoACurso(String matriculaAluno, String codigoCurso) {
+        if (codigoCurso == null || codigoCurso.isBlank()) {
+            throw new IllegalArgumentException("Código do curso não pode ser vazio.");
+        }
+        Usuario usuario = buscarPorMatricula(matriculaAluno);
+        if (usuario == null) {
+            throw new IllegalArgumentException("Aluno não encontrado: " + matriculaAluno);
+        }
+        if (!(usuario instanceof Aluno aluno)) {
+            throw new IllegalArgumentException(
+                    "Usuário " + matriculaAluno + " não é um aluno.");
+        }
+        aluno.vincularCurso(codigoCurso);
+        repository.salvarTodos(usuarios);
+    }
+
+    // RF39 - Lista os alunos vinculados a um curso, para o coordenador consultar o histórico deles
+    public List<Aluno> listarAlunosPorCurso(String codigoCurso) {
+        if (codigoCurso == null || codigoCurso.isBlank()) {
+            throw new IllegalArgumentException("Código do curso não pode ser vazio.");
+        }
+        return usuarios.stream()
+                .filter(u -> u.getTipo() == TipoUsuario.ALUNO)
+                .map(u -> (Aluno) u)
+                .filter(a -> codigoCurso.equalsIgnoreCase(a.getCodigoCurso()))
+                .collect(Collectors.toList());
     }
 
     // RF04 - Helpers para verificar duplicidade sem lançar exceção
