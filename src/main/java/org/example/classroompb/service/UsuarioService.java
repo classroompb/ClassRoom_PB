@@ -156,8 +156,7 @@ public class UsuarioService {
             throw new IllegalArgumentException("Aluno não encontrado: " + matriculaAluno);
         }
         if (!(usuario instanceof Aluno aluno)) {
-            throw new IllegalArgumentException(
-                    "Usuário " + matriculaAluno + " não é um aluno.");
+            throw new IllegalArgumentException("Usuário " + matriculaAluno + " não é um aluno.");
         }
         aluno.vincularCurso(codigoCurso);
         repository.salvarTodos(usuarios);

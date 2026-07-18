@@ -170,7 +170,8 @@ class RF39HistoricoAlunosCursoTest {
 
         usuarioService.vincularAlunoACurso("A001", "CC");
 
-        List<org.example.classroompb.model.Aluno> alunosDoCC = usuarioService.listarAlunosPorCurso("CC");
+        List<org.example.classroompb.model.Aluno> alunosDoCC =
+                usuarioService.listarAlunosPorCurso("CC");
         assertEquals(1, alunosDoCC.size());
         assertEquals("A001", alunosDoCC.get(0).getMatricula());
         assertEquals("CC", alunosDoCC.get(0).getCodigoCurso());
@@ -208,7 +209,8 @@ class RF39HistoricoAlunosCursoTest {
         usuarioService.vincularAlunoACurso("A001", "CC");
         usuarioService.vincularAlunoACurso("A002", "ADS");
 
-        List<org.example.classroompb.model.Aluno> alunosDoCC = usuarioService.listarAlunosPorCurso("CC");
+        List<org.example.classroompb.model.Aluno> alunosDoCC =
+                usuarioService.listarAlunosPorCurso("CC");
 
         assertEquals(1, alunosDoCC.size());
         assertEquals("A001", alunosDoCC.get(0).getMatricula());
@@ -223,8 +225,7 @@ class RF39HistoricoAlunosCursoTest {
 
     @Test
     void deveRejeitarListagemComCodigoDeCursoVazio() {
-        assertThrows(
-                IllegalArgumentException.class, () -> usuarioService.listarAlunosPorCurso(""));
+        assertThrows(IllegalArgumentException.class, () -> usuarioService.listarAlunosPorCurso(""));
     }
 
     // ---- consultarHistoricoPorCurso ----
@@ -271,7 +272,8 @@ class RF39HistoricoAlunosCursoTest {
     @Test
     void deveRetornarListaVaziaQuandoCursoNaoTemAlunosVinculados() {
         List<HistoricoAlunoCurso> historicos =
-                avaliacaoService.consultarHistoricoPorCurso(usuarioService.listarAlunosPorCurso("CC"));
+                avaliacaoService.consultarHistoricoPorCurso(
+                        usuarioService.listarAlunosPorCurso("CC"));
 
         assertTrue(historicos.isEmpty());
     }
@@ -297,7 +299,8 @@ class RF39HistoricoAlunosCursoTest {
         avaliacaoService.definirSituacaoFinal(turma.getCodigo(), "A002");
 
         List<HistoricoAlunoCurso> historicosCC =
-                avaliacaoService.consultarHistoricoPorCurso(usuarioService.listarAlunosPorCurso("CC"));
+                avaliacaoService.consultarHistoricoPorCurso(
+                        usuarioService.listarAlunosPorCurso("CC"));
 
         assertEquals(1, historicosCC.size());
         assertEquals("A001", historicosCC.get(0).matriculaAluno());

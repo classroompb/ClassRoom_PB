@@ -3,7 +3,6 @@ package org.example.classroompb.service;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.example.classroompb.model.Aluno;
 import org.example.classroompb.model.Avaliacao;
 import org.example.classroompb.model.HistoricoAlunoCurso;
@@ -283,9 +282,9 @@ public class AvaliacaoService {
      * <p>Não recebe o código do curso diretamente: quem resolve "quais alunos pertencem a este
      * curso" é a {@code UsuarioService} (via {@code listarAlunosPorCurso}), mantendo esta classe
      * sem uma dependência nova. Aqui só reaproveitamos o {@link
-     * #consultarHistoricoAcademico(String)} do RF37 para cada aluno da lista, agrupando o
-     * resultado em {@link HistoricoAlunoCurso}. Alunos sem nenhum item de histórico ainda aparecem
-     * no resultado, com a lista de itens vazia.
+     * #consultarHistoricoAcademico(String)} do RF37 para cada aluno da lista, agrupando o resultado
+     * em {@link HistoricoAlunoCurso}. Alunos sem nenhum item de histórico ainda aparecem no
+     * resultado, com a lista de itens vazia.
      */
     public List<HistoricoAlunoCurso> consultarHistoricoPorCurso(List<Aluno> alunosDoCurso) {
         if (alunosDoCurso == null) {

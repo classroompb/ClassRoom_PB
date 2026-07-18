@@ -5,7 +5,6 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Scanner;
 import java.util.function.Predicate;
-
 import org.example.classroompb.model.Aluno;
 import org.example.classroompb.model.Avaliacao;
 import org.example.classroompb.model.Curso;
@@ -1408,9 +1407,7 @@ public class CLI {
         }
     }
 
-    /**
-     * RF39 - O coordenador consulta o histórico acadêmico de todos os alunos de um curso.
-     */
+    /** RF39 - O coordenador consulta o histórico acadêmico de todos os alunos de um curso. */
     private void consultarHistoricoAlunosDoCurso() {
         System.out.print("Código do curso: ");
         String codigoCurso = scanner.nextLine().trim();
@@ -1431,7 +1428,8 @@ public class CLI {
 
         System.out.println("\n=== HISTÓRICO DOS ALUNOS DO CURSO " + codigoCurso + " ===");
         for (HistoricoAlunoCurso historico : historicos) {
-            System.out.println("\nAluno: " + historico.nomeAluno() + " (" + historico.matriculaAluno() + ")");
+            System.out.println(
+                    "\nAluno: " + historico.nomeAluno() + " (" + historico.matriculaAluno() + ")");
 
             if (historico.itens().isEmpty()) {
                 System.out.println("   Nenhum registro encontrado no histórico.");
