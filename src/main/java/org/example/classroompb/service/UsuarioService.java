@@ -113,6 +113,7 @@ public class UsuarioService {
                     9. Consultar histórico dos alunos do curso (RF39)
                     10. Adicionar pré-requisito em disciplina
                     11. Vincular aluno a um curso (RF39)
+                    12. Relatório de alunos por turma (RF40)
                     0. Sair
                     """;
             case ADMINISTRADOR ->

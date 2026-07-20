@@ -32,6 +32,8 @@ import org.example.classroompb.service.FrequenciaService;
 import org.example.classroompb.service.PeriodoLetivoService;
 import org.example.classroompb.service.TurmaService;
 import org.example.classroompb.service.UsuarioService;
+import org.example.classroompb.dto.AlunoMatriculadoDTO;
+import org.example.classroompb.exception.AcessoNegadoException;
 
 public class CLI {
 
@@ -351,6 +353,12 @@ public class CLI {
         // RF39 - Coordenador vincula um aluno já cadastrado a um curso
         if (usuarioLogado.getTipo() == TipoUsuario.COORDENADOR && opcao.equals("11")) {
             vincularAlunoACurso();
+            return;
+        }
+
+        // RF40 - Coordenador gera relatório de alunos matriculados por turma
+        if (usuarioLogado.getTipo() == TipoUsuario.COORDENADOR && opcao.equals("12")) {
+            gerarRelatorioAlunosPorTurma();
             return;
         }
 
@@ -1482,6 +1490,67 @@ public class CLI {
             System.out.printf("   Frequência: %.1f%%%n", item.frequencia());
 
             System.out.println("   Situação: " + item.situacao() + "\n");
+        }
+    }
+
+    /** RF40 - Coordenador gera relatório de alunos matriculados por turma. */
+    private void gerarRelatorioAlunosPorTurma() {
+        System.out.print("Código da turma: ");
+        String codigoTurma = scanner.nextLine().trim();
+
+        try {
+            List<AlunoMatriculadoDTO> alunos = turmaService.obterAlunosMatriculadosPorTurma(codigoTurma, usuarioLogado);
+
+            System.out.println("\n=== Relatório de Alunos por Turma ===");
+            System.out.println("Turma: " + codigoTurma);
+            System.out.println();
+
+            if (alunos.isEmpty()) {
+                System.out.println("+----------------------+---------------------------------+");
+                System.out.println("| Matrícula            | Nome do Aluno                   |");
+                System.out.println("+----------------------+---------------------------------+");
+                System.out.println("| (Nenhum aluno matriculado nesta turma)                 |");
+                System.out.println("+----------------------+---------------------------------+");
+                System.out.println("| Total de alunos: 0                                     |");
+                System.out.println("+----------------------+---------------------------------+");
+                return;
+            }
+
+            int maxMatriculaLen = "Matrícula".length();
+            int maxNomeLen = "Nome do Aluno".length();
+
+            for (AlunoMatriculadoDTO aluno : alunos) {
+                if (aluno.matricula().length() > maxMatriculaLen) {
+                    maxMatriculaLen = aluno.matricula().length();
+                }
+                if (aluno.nome().length() > maxNomeLen) {
+                    maxNomeLen = aluno.nome().length();
+                }
+            }
+
+            String formatStr = "| %-" + maxMatriculaLen + "s | %-" + maxNomeLen + "s |%n";
+            String border = "+" + "-".repeat(maxMatriculaLen + 2) + "+" + "-".repeat(maxNomeLen + 2) + "+";
+
+            System.out.println(border);
+            System.out.printf(formatStr, "Matrícula", "Nome do Aluno");
+            System.out.println(border);
+
+            for (AlunoMatriculadoDTO aluno : alunos) {
+                System.out.printf(formatStr, aluno.matricula(), aluno.nome());
+            }
+
+            System.out.println(border);
+            
+            String footerText = "Total de alunos: " + alunos.size();
+            int innerWidth = maxMatriculaLen + maxNomeLen + 3;
+            String footerFormat = "| %-" + innerWidth + "s |%n";
+            System.out.printf(footerFormat, footerText);
+            System.out.println(border);
+
+        } catch (AcessoNegadoException e) {
+            System.out.println("Erro de permissão: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            System.out.println("Erro: " + e.getMessage());
         }
     }
 

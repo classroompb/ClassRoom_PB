@@ -4,6 +4,8 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.example.classroompb.dto.AlunoMatriculadoDTO;
+import org.example.classroompb.exception.AcessoNegadoException;
 import org.example.classroompb.model.*;
 import org.example.classroompb.repository.TurmaRepository;
 
@@ -603,5 +605,35 @@ public class TurmaService {
 
     public void salvarTodas() {
         repository.salvarTodos(turmas);
+    }
+
+    /**
+     * RF40: O coordenador deve gerar relatório de alunos matriculados por turma.
+     * Retorna a lista de alunos matriculados contendo a matrícula e o nome.
+     */
+    public List<AlunoMatriculadoDTO> obterAlunosMatriculadosPorTurma(String codigoTurma, Usuario usuarioLogado) {
+        if (usuarioLogado == null || usuarioLogado.getTipo() != TipoUsuario.COORDENADOR) {
+            throw new AcessoNegadoException("Acesso negado: apenas coordenadores podem gerar este relatório.");
+        }
+
+        if (codigoTurma == null || codigoTurma.trim().isEmpty()) {
+            throw new IllegalArgumentException("Código da turma não pode ser vazio.");
+        }
+
+        Turma turma = buscarPorCodigo(codigoTurma);
+        if (turma == null) {
+            throw new IllegalArgumentException("Turma não encontrada: " + codigoTurma);
+        }
+
+        List<String> matriculas = turma.getAlunoMatriculados();
+        List<AlunoMatriculadoDTO> alunosDTO = new ArrayList<>();
+
+        for (String matricula : matriculas) {
+            Usuario aluno = usuarioService.buscarPorMatricula(matricula);
+            String nome = (aluno != null) ? aluno.getNome() : "Desconhecido";
+            alunosDTO.add(new AlunoMatriculadoDTO(matricula, nome));
+        }
+
+        return alunosDTO;
     }
 }
