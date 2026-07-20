@@ -6,9 +6,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.example.classroompb.dto.AlunoMatriculadoDTO;
+import org.example.classroompb.dto.OcupacaoVagasDTO;
 import org.example.classroompb.exception.AcessoNegadoException;
-import org.example.classroompb.model.*;
+import org.example.classroompb.model.Disciplina;
+import org.example.classroompb.model.PeriodoLetivo;
+import org.example.classroompb.model.Turma;
+import org.example.classroompb.model.Usuario;
 import org.example.classroompb.repository.DisciplinaRepository;
 import org.example.classroompb.repository.PeriodoLetivoRepository;
 import org.example.classroompb.repository.TurmaRepository;
@@ -20,7 +23,8 @@ import org.example.classroompb.service.UsuarioService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class RF40RelatorioAlunosTurmaTest {
+/** RF41 — o coordenador gera o relatório de ocupação de vagas das turmas. */
+class RF41RelatorioOcupacaoVagasTest {
 
     private TurmaService turmaService;
     private UsuarioService usuarioService;
@@ -92,81 +96,79 @@ class RF40RelatorioAlunosTurmaTest {
         usuarioService = new UsuarioService(new UsuarioRepositorioFake());
         disciplinaService = new DisciplinaService(new DisciplinaRepositorioFake());
         periodoLetivoService = new PeriodoLetivoService(new PeriodoLetivoRepositorioFake());
-
         turmaService =
                 new TurmaService(new TurmaRepositorioFake(), usuarioService, disciplinaService);
 
-        // Cadastra Coordenador, Professor e Alunos para os testes
-        usuarioService.cadastrar(
-                "COORDENADOR", "Coordenador Principal", "C001", "coord@example.com", "1234");
-        usuarioService.cadastrar(
-                "PROFESSOR", "Professor Silva", "P001", "prof@example.com", "1234");
-        usuarioService.cadastrar("ALUNO", "Aluno Um", "A001", "aluno1@example.com", "1234");
-        usuarioService.cadastrar("ALUNO", "Aluno Dois", "A002", "aluno2@example.com", "1234");
+        usuarioService.cadastrar("COORDENADOR", "Coord", "C001", "coord@example.com", "1234");
+        usuarioService.cadastrar("PROFESSOR", "Prof Silva", "P001", "prof@example.com", "1234");
+        usuarioService.cadastrar("ALUNO", "Aluno 1", "A001", "a1@example.com", "1234");
+        usuarioService.cadastrar("ALUNO", "Aluno 2", "A002", "a2@example.com", "1234");
+        usuarioService.cadastrar("ALUNO", "Aluno 3", "A003", "a3@example.com", "1234");
+        usuarioService.cadastrar("ALUNO", "Aluno 4", "A004", "a4@example.com", "1234");
 
         disciplinaService.cadastrar("D001", "Algoritmos", 60, 4);
         periodoLetivoService.cadastrar("2026.1");
     }
 
     @Test
-    void deveGerarRelatorioDeAlunosPorTurmaComSucessoQuandoCoordenadorLogado() {
-        // Arrange
+    void deveContarVagasMatriculadosLivresEEsperaPorTurma() {
+        Usuario coordenador = usuarioService.buscarPorMatricula("C001");
+        PeriodoLetivo periodo = periodoLetivoService.buscarPorIdentificador("2026.1");
+
+        // Turma com 2 vagas: 2 matriculados, 1 na lista de espera.
+        Turma turma =
+                turmaService.ofertarTurma("D001", "P001", periodo, 2, "08:00-10:00", "Sala 1");
+        turmaService.solicitarMatricula(turma.getCodigo(), "A001");
+        turmaService.solicitarMatricula(turma.getCodigo(), "A002");
+        turmaService.solicitarMatricula(turma.getCodigo(), "A003"); // sem vaga -> espera
+
+        List<OcupacaoVagasDTO> relatorio = turmaService.relatorioOcupacaoVagas(coordenador);
+
+        assertNotNull(relatorio);
+        assertEquals(1, relatorio.size());
+        OcupacaoVagasDTO item = relatorio.get(0);
+        assertEquals(turma.getCodigo(), item.codigoTurma());
+        assertEquals("Algoritmos", item.nomeDisciplina());
+        assertEquals("Prof Silva", item.nomeProfessor());
+        assertEquals("2026.1", item.periodoLetivo());
+        assertEquals(2, item.limiteVagas());
+        assertEquals(2, item.matriculados());
+        assertEquals(0, item.vagasDisponiveis());
+        assertEquals(1, item.emEspera());
+    }
+
+    @Test
+    void turmaSemMatriculaMostraTodasAsVagasLivres() {
         Usuario coordenador = usuarioService.buscarPorMatricula("C001");
         PeriodoLetivo periodo = periodoLetivoService.buscarPorIdentificador("2026.1");
 
         Turma turma =
-                turmaService.ofertarTurma("D001", "P001", periodo, 10, "08:00-10:00", "Sala 101");
-        turmaService.solicitarMatricula(turma.getCodigo(), "A001");
-        turmaService.solicitarMatricula(turma.getCodigo(), "A002");
+                turmaService.ofertarTurma("D001", "P001", periodo, 5, "10:00-12:00", "Sala 2");
 
-        // Act
-        List<AlunoMatriculadoDTO> relatorio =
-                turmaService.obterAlunosMatriculadosPorTurma(turma.getCodigo(), coordenador);
+        List<OcupacaoVagasDTO> relatorio = turmaService.relatorioOcupacaoVagas(coordenador);
 
-        // Assert
-        assertNotNull(relatorio);
-        assertEquals(2, relatorio.size());
-
-        AlunoMatriculadoDTO dto1 = relatorio.get(0);
-        assertEquals("A001", dto1.matricula());
-        assertEquals("Aluno Um", dto1.nome());
-
-        AlunoMatriculadoDTO dto2 = relatorio.get(1);
-        assertEquals("A002", dto2.matricula());
-        assertEquals("Aluno Dois", dto2.nome());
+        OcupacaoVagasDTO item = relatorio.get(0);
+        assertEquals(turma.getCodigo(), item.codigoTurma());
+        assertEquals(5, item.limiteVagas());
+        assertEquals(0, item.matriculados());
+        assertEquals(5, item.vagasDisponiveis());
+        assertEquals(0, item.emEspera());
     }
 
     @Test
-    void deveLancarAcessoNegadoExceptionQuandoUsuarioNaoForCoordenador() {
-        // Arrange
+    void semTurmasRetornaListaVazia() {
+        Usuario coordenador = usuarioService.buscarPorMatricula("C001");
+        assertEquals(0, turmaService.relatorioOcupacaoVagas(coordenador).size());
+    }
+
+    @Test
+    void naoCoordenadorRecebeAcessoNegado() {
         Usuario professor = usuarioService.buscarPorMatricula("P001");
         Usuario aluno = usuarioService.buscarPorMatricula("A001");
-        PeriodoLetivo periodo = periodoLetivoService.buscarPorIdentificador("2026.1");
 
-        Turma turma =
-                turmaService.ofertarTurma("D001", "P001", periodo, 10, "08:00-10:00", "Sala 101");
-        turmaService.solicitarMatricula(turma.getCodigo(), "A001");
-
-        // Act & Assert
-        // Testando com Professor
         assertThrows(
-                AcessoNegadoException.class,
-                () -> {
-                    turmaService.obterAlunosMatriculadosPorTurma(turma.getCodigo(), professor);
-                });
-
-        // Testando com Aluno
-        assertThrows(
-                AcessoNegadoException.class,
-                () -> {
-                    turmaService.obterAlunosMatriculadosPorTurma(turma.getCodigo(), aluno);
-                });
-
-        // Testando com Usuário Nulo
-        assertThrows(
-                AcessoNegadoException.class,
-                () -> {
-                    turmaService.obterAlunosMatriculadosPorTurma(turma.getCodigo(), null);
-                });
+                AcessoNegadoException.class, () -> turmaService.relatorioOcupacaoVagas(professor));
+        assertThrows(AcessoNegadoException.class, () -> turmaService.relatorioOcupacaoVagas(aluno));
+        assertThrows(AcessoNegadoException.class, () -> turmaService.relatorioOcupacaoVagas(null));
     }
 }

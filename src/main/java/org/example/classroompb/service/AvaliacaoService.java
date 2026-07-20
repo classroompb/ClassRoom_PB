@@ -1,16 +1,25 @@
 package org.example.classroompb.service;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import org.example.classroompb.dto.ReprovacaoDisciplinaDTO;
+import org.example.classroompb.exception.AcessoNegadoException;
 import org.example.classroompb.model.Aluno;
 import org.example.classroompb.model.Avaliacao;
+import org.example.classroompb.model.Disciplina;
 import org.example.classroompb.model.HistoricoAlunoCurso;
 import org.example.classroompb.model.ItemHistoricoAcademico;
 import org.example.classroompb.model.ItemRelatorioTurma;
 import org.example.classroompb.model.SituacaoFinal;
 import org.example.classroompb.model.StatusPeriodoLetivo;
+import org.example.classroompb.model.TipoUsuario;
 import org.example.classroompb.model.Turma;
+import org.example.classroompb.model.Usuario;
 import org.example.classroompb.repository.AvaliacaoRepository;
 
 // Avaliação da Release 3: lançamento de notas (RF31), média (RF32) e situação final (RF33).
@@ -321,5 +330,68 @@ public class AvaliacaoService {
                 avaliacao.calcularMedia(),
                 frequencia,
                 avaliacao.getSituacao());
+    }
+
+    /**
+     * RF42 - O coordenador deve gerar relatório de reprovação por disciplina.
+     *
+     * <p>Agrupa as avaliações já finalizadas por disciplina (a disciplina vem da turma) e separa
+     * quem reprovou por nota (RN11) de quem reprovou por falta (RN12). Avaliações ainda
+     * EM_ANDAMENTO não entram na conta, pois não têm veredito. A taxa de reprovação é o percentual
+     * de reprovados sobre o total de avaliados da disciplina. O resultado vem ordenado por nome da
+     * disciplina.
+     */
+    public List<ReprovacaoDisciplinaDTO> relatorioReprovacaoPorDisciplina(Usuario usuarioLogado) {
+        if (usuarioLogado == null || usuarioLogado.getTipo() != TipoUsuario.COORDENADOR) {
+            throw new AcessoNegadoException(
+                    "Acesso negado: apenas coordenadores podem gerar este relatório.");
+        }
+
+        Map<String, Disciplina> disciplinaPorCodigo = new LinkedHashMap<>();
+        Map<String, int[]> contadores = new HashMap<>();
+        // int[]{avaliados, reprovadosPorNota, reprovadosPorFalta}
+
+        for (Avaliacao avaliacao : avaliacoes) {
+            SituacaoFinal situacao = avaliacao.getSituacao();
+            if (situacao == null || situacao == SituacaoFinal.EM_ANDAMENTO) {
+                continue; // sem veredito ainda, não conta
+            }
+            Turma turma = turmaService.buscarPorCodigo(avaliacao.getCodigoTurma());
+            if (turma == null) {
+                continue; // turma removida; não há disciplina para agrupar
+            }
+
+            Disciplina disciplina = turma.getDisciplina();
+            String codigo = disciplina.getCodigo();
+            disciplinaPorCodigo.putIfAbsent(codigo, disciplina);
+            int[] c = contadores.computeIfAbsent(codigo, k -> new int[3]);
+            c[0]++;
+            if (situacao == SituacaoFinal.REPROVADO_POR_NOTA) {
+                c[1]++;
+            } else if (situacao == SituacaoFinal.REPROVADO_POR_FALTA) {
+                c[2]++;
+            }
+        }
+
+        List<ReprovacaoDisciplinaDTO> relatorio = new ArrayList<>();
+        for (Map.Entry<String, Disciplina> entry : disciplinaPorCodigo.entrySet()) {
+            int[] c = contadores.get(entry.getKey());
+            int avaliados = c[0];
+            int reprovadosPorNota = c[1];
+            int reprovadosPorFalta = c[2];
+            int totalReprovados = reprovadosPorNota + reprovadosPorFalta;
+            double taxa = avaliados == 0 ? 0.0 : (totalReprovados * 100.0) / avaliados;
+            relatorio.add(
+                    new ReprovacaoDisciplinaDTO(
+                            entry.getKey(),
+                            entry.getValue().getNome(),
+                            avaliados,
+                            reprovadosPorNota,
+                            reprovadosPorFalta,
+                            totalReprovados,
+                            taxa));
+        }
+        relatorio.sort(Comparator.comparing(ReprovacaoDisciplinaDTO::nomeDisciplina));
+        return relatorio;
     }
 }

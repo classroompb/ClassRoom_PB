@@ -2,9 +2,11 @@ package org.example.classroompb.service;
 
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.example.classroompb.dto.AlunoMatriculadoDTO;
+import org.example.classroompb.dto.OcupacaoVagasDTO;
 import org.example.classroompb.exception.AcessoNegadoException;
 import org.example.classroompb.model.*;
 import org.example.classroompb.repository.TurmaRepository;
@@ -608,12 +610,14 @@ public class TurmaService {
     }
 
     /**
-     * RF40: O coordenador deve gerar relatório de alunos matriculados por turma.
-     * Retorna a lista de alunos matriculados contendo a matrícula e o nome.
+     * RF40: O coordenador deve gerar relatório de alunos matriculados por turma. Retorna a lista de
+     * alunos matriculados contendo a matrícula e o nome.
      */
-    public List<AlunoMatriculadoDTO> obterAlunosMatriculadosPorTurma(String codigoTurma, Usuario usuarioLogado) {
+    public List<AlunoMatriculadoDTO> obterAlunosMatriculadosPorTurma(
+            String codigoTurma, Usuario usuarioLogado) {
         if (usuarioLogado == null || usuarioLogado.getTipo() != TipoUsuario.COORDENADOR) {
-            throw new AcessoNegadoException("Acesso negado: apenas coordenadores podem gerar este relatório.");
+            throw new AcessoNegadoException(
+                    "Acesso negado: apenas coordenadores podem gerar este relatório.");
         }
 
         if (codigoTurma == null || codigoTurma.trim().isEmpty()) {
@@ -635,5 +639,34 @@ public class TurmaService {
         }
 
         return alunosDTO;
+    }
+
+    /**
+     * RF41: O coordenador deve gerar relatório de ocupação de vagas. Uma linha por turma com o
+     * limite de vagas, quantas estão preenchidas, quantas sobraram e quantos alunos estão na lista
+     * de espera. Ordenado por período letivo e, dentro do período, por nome da disciplina.
+     */
+    public List<OcupacaoVagasDTO> relatorioOcupacaoVagas(Usuario usuarioLogado) {
+        if (usuarioLogado == null || usuarioLogado.getTipo() != TipoUsuario.COORDENADOR) {
+            throw new AcessoNegadoException(
+                    "Acesso negado: apenas coordenadores podem gerar este relatório.");
+        }
+
+        return turmas.stream()
+                .map(
+                        t ->
+                                new OcupacaoVagasDTO(
+                                        t.getCodigo(),
+                                        t.getDisciplina().getNome(),
+                                        t.getProfessor().getNome(),
+                                        t.getPeriodoLetivo().getIdentificador(),
+                                        t.getLimiteVagas(),
+                                        t.getTotalMatriculados(),
+                                        t.getVagasDisponiveis(),
+                                        t.getTotalEmEspera()))
+                .sorted(
+                        Comparator.comparing(OcupacaoVagasDTO::periodoLetivo)
+                                .thenComparing(OcupacaoVagasDTO::nomeDisciplina))
+                .collect(Collectors.toList());
     }
 }
