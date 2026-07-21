@@ -1,5 +1,6 @@
 package classroompb.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -9,6 +10,7 @@ import java.util.List;
 import org.example.classroompb.model.Avaliacao;
 import org.example.classroompb.model.Disciplina;
 import org.example.classroompb.model.PeriodoLetivo;
+import org.example.classroompb.model.SituacaoFinal;
 import org.example.classroompb.model.Turma;
 import org.example.classroompb.model.Usuario;
 import org.example.classroompb.repository.AvaliacaoRepository;
@@ -173,5 +175,29 @@ class RF36FecharNotasTurmaTest {
         assertThrows(
                 IllegalStateException.class,
                 () -> avaliacaoService.alterarNota(turma.getCodigo(), "A001", 0, 9.0));
+    }
+
+    // Fechar a turma consolida a situação final; ela não pode ficar EM_ANDAMENTO depois.
+    @Test
+    void fechamentoConsolidaSituacaoFinalComAFrequenciaInformada() {
+        avaliacaoService.lancarNota(turma.getCodigo(), "A001", 8.5);
+        avaliacaoService.registrarFrequencia(turma.getCodigo(), "A001", 90.0);
+
+        avaliacaoService.fecharTurma(turma.getCodigo());
+
+        Avaliacao avaliacao = avaliacaoService.buscarAvaliacao(turma.getCodigo(), "A001");
+        assertEquals(SituacaoFinal.APROVADO, avaliacao.getSituacao());
+    }
+
+    // Sem frequência lançada, o fechamento assume 0% e reprova por falta (RN12) — nunca deixa
+    // a avaliação EM_ANDAMENTO.
+    @Test
+    void fechamentoSemFrequenciaReprovaPorFalta() {
+        avaliacaoService.lancarNota(turma.getCodigo(), "A001", 8.5);
+
+        avaliacaoService.fecharTurma(turma.getCodigo());
+
+        Avaliacao avaliacao = avaliacaoService.buscarAvaliacao(turma.getCodigo(), "A001");
+        assertEquals(SituacaoFinal.REPROVADO_POR_FALTA, avaliacao.getSituacao());
     }
 }

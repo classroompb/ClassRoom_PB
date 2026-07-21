@@ -5,6 +5,11 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Scanner;
 import java.util.function.Predicate;
+import org.example.classroompb.dto.AlunoMatriculadoDTO;
+import org.example.classroompb.dto.OcupacaoVagasDTO;
+import org.example.classroompb.dto.RelatorioUsuariosDTO;
+import org.example.classroompb.dto.ReprovacaoDisciplinaDTO;
+import org.example.classroompb.exception.AcessoNegadoException;
 import org.example.classroompb.model.Aluno;
 import org.example.classroompb.model.Avaliacao;
 import org.example.classroompb.model.Curso;
@@ -32,8 +37,6 @@ import org.example.classroompb.service.FrequenciaService;
 import org.example.classroompb.service.PeriodoLetivoService;
 import org.example.classroompb.service.TurmaService;
 import org.example.classroompb.service.UsuarioService;
-import org.example.classroompb.dto.AlunoMatriculadoDTO;
-import org.example.classroompb.exception.AcessoNegadoException;
 
 public class CLI {
 
@@ -359,6 +362,24 @@ public class CLI {
         // RF40 - Coordenador gera relatório de alunos matriculados por turma
         if (usuarioLogado.getTipo() == TipoUsuario.COORDENADOR && opcao.equals("12")) {
             gerarRelatorioAlunosPorTurma();
+            return;
+        }
+
+        // RF41 - Coordenador gera relatório de ocupação de vagas
+        if (usuarioLogado.getTipo() == TipoUsuario.COORDENADOR && opcao.equals("13")) {
+            gerarRelatorioOcupacaoVagas();
+            return;
+        }
+
+        // RF42 - Coordenador gera relatório de reprovação por disciplina
+        if (usuarioLogado.getTipo() == TipoUsuario.COORDENADOR && opcao.equals("14")) {
+            gerarRelatorioReprovacaoPorDisciplina();
+            return;
+        }
+
+        // RF43 - Administrador gera relatório geral de usuários cadastrados
+        if (usuarioLogado.getTipo() == TipoUsuario.ADMINISTRADOR && opcao.equals("5")) {
+            gerarRelatorioGeralUsuarios();
             return;
         }
 
@@ -1339,6 +1360,15 @@ public class CLI {
                     "   Média (RF32): %.2f%n",
                     avaliacaoService.calcularMedia(codigoTurma, matricula));
 
+            // Turma fechada: a situação já foi consolidada no fechamento (RF36) e não pode mais
+            // ser alterada (RF35). Só exibe, sem pedir frequência — pedir aqui tentaria gravar em
+            // turma fechada e derrubava o programa.
+            if (turma.isFechada()) {
+                System.out.printf("   Frequência: %.1f%%%n", avaliacao.getFrequencia());
+                System.out.println("   Situação final (RF33): " + avaliacao.getSituacao());
+                continue;
+            }
+
             System.out.print("   Frequência (%) para definir a situação [Enter para pular]: ");
             String entrada = scanner.nextLine().trim();
             if (entrada.isEmpty()) {
@@ -1352,7 +1382,7 @@ public class CLI {
                 System.out.println("   Situação final (RF33): " + situacao);
             } catch (NumberFormatException e) {
                 System.out.println("   Erro: frequência inválida.");
-            } catch (IllegalArgumentException e) {
+            } catch (IllegalArgumentException | IllegalStateException e) {
                 System.out.println("   Erro: " + e.getMessage());
             }
         }
@@ -1499,7 +1529,8 @@ public class CLI {
         String codigoTurma = scanner.nextLine().trim();
 
         try {
-            List<AlunoMatriculadoDTO> alunos = turmaService.obterAlunosMatriculadosPorTurma(codigoTurma, usuarioLogado);
+            List<AlunoMatriculadoDTO> alunos =
+                    turmaService.obterAlunosMatriculadosPorTurma(codigoTurma, usuarioLogado);
 
             System.out.println("\n=== Relatório de Alunos por Turma ===");
             System.out.println("Turma: " + codigoTurma);
@@ -1529,7 +1560,8 @@ public class CLI {
             }
 
             String formatStr = "| %-" + maxMatriculaLen + "s | %-" + maxNomeLen + "s |%n";
-            String border = "+" + "-".repeat(maxMatriculaLen + 2) + "+" + "-".repeat(maxNomeLen + 2) + "+";
+            String border =
+                    "+" + "-".repeat(maxMatriculaLen + 2) + "+" + "-".repeat(maxNomeLen + 2) + "+";
 
             System.out.println(border);
             System.out.printf(formatStr, "Matrícula", "Nome do Aluno");
@@ -1540,7 +1572,7 @@ public class CLI {
             }
 
             System.out.println(border);
-            
+
             String footerText = "Total de alunos: " + alunos.size();
             int innerWidth = maxMatriculaLen + maxNomeLen + 3;
             String footerFormat = "| %-" + innerWidth + "s |%n";
@@ -1551,6 +1583,74 @@ public class CLI {
             System.out.println("Erro de permissão: " + e.getMessage());
         } catch (IllegalArgumentException e) {
             System.out.println("Erro: " + e.getMessage());
+        }
+    }
+
+    /** RF41 - Coordenador gera relatório de ocupação de vagas das turmas. */
+    private void gerarRelatorioOcupacaoVagas() {
+        try {
+            List<OcupacaoVagasDTO> relatorio = turmaService.relatorioOcupacaoVagas(usuarioLogado);
+
+            System.out.println("\n=== RELATÓRIO DE OCUPAÇÃO DE VAGAS (RF41) ===");
+            if (relatorio.isEmpty()) {
+                System.out.println("Nenhuma turma cadastrada.");
+                return;
+            }
+            for (OcupacaoVagasDTO item : relatorio) {
+                System.out.println(
+                        "\nTurma: " + item.codigoTurma() + " - " + item.nomeDisciplina());
+                System.out.println("   Professor: " + item.nomeProfessor());
+                System.out.println("   Período: " + item.periodoLetivo());
+                System.out.printf(
+                        "   Vagas: %d/%d (livres: %d)%n",
+                        item.matriculados(), item.limiteVagas(), item.vagasDisponiveis());
+                System.out.println("   Lista de espera: " + item.emEspera());
+            }
+        } catch (AcessoNegadoException e) {
+            System.out.println("Erro de permissão: " + e.getMessage());
+        }
+    }
+
+    /** RF42 - Coordenador gera relatório de reprovação por disciplina. */
+    private void gerarRelatorioReprovacaoPorDisciplina() {
+        try {
+            List<ReprovacaoDisciplinaDTO> relatorio =
+                    avaliacaoService.relatorioReprovacaoPorDisciplina(usuarioLogado);
+
+            System.out.println("\n=== RELATÓRIO DE REPROVAÇÃO POR DISCIPLINA (RF42) ===");
+            if (relatorio.isEmpty()) {
+                System.out.println("Nenhuma avaliação finalizada para gerar o relatório.");
+                return;
+            }
+            for (ReprovacaoDisciplinaDTO item : relatorio) {
+                System.out.println("\n" + item.codigoDisciplina() + " - " + item.nomeDisciplina());
+                System.out.println("   Avaliados: " + item.totalAvaliados());
+                System.out.printf(
+                        "   Reprovados: %d (por nota: %d, por falta: %d)%n",
+                        item.totalReprovados(),
+                        item.reprovadosPorNota(),
+                        item.reprovadosPorFalta());
+                System.out.printf("   Taxa de reprovação: %.1f%%%n", item.taxaReprovacao());
+            }
+        } catch (AcessoNegadoException e) {
+            System.out.println("Erro de permissão: " + e.getMessage());
+        }
+    }
+
+    /** RF43 - Administrador gera relatório geral de usuários cadastrados. */
+    private void gerarRelatorioGeralUsuarios() {
+        try {
+            RelatorioUsuariosDTO relatorio = usuarioService.relatorioGeralUsuarios(usuarioLogado);
+
+            System.out.println("\n=== RELATÓRIO GERAL DE USUÁRIOS (RF43) ===");
+            System.out.println("   Alunos: " + relatorio.totalAlunos());
+            System.out.println("   Professores: " + relatorio.totalProfessores());
+            System.out.println("   Coordenadores: " + relatorio.totalCoordenadores());
+            System.out.println("   Administradores: " + relatorio.totalAdministradores());
+            System.out.println("   ─────────────────────────");
+            System.out.println("   Total: " + relatorio.total());
+        } catch (AcessoNegadoException e) {
+            System.out.println("Erro de permissão: " + e.getMessage());
         }
     }
 

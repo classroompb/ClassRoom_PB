@@ -2,6 +2,8 @@ package org.example.classroompb.service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import org.example.classroompb.dto.RelatorioUsuariosDTO;
+import org.example.classroompb.exception.AcessoNegadoException;
 import org.example.classroompb.model.Administrador;
 import org.example.classroompb.model.Aluno;
 import org.example.classroompb.model.Coordenador;
@@ -108,12 +110,14 @@ public class UsuarioService {
                     4. Ativar período letivo
                     5. Encerrar período letivo
                     6. Gerenciar turmas (alterar/cancelar)
-                    7. Configurar datas do período letivo (RF22)
-                    8. Visualizar lista de espera das turmas (RF26)
-                    9. Consultar histórico dos alunos do curso (RF39)
+                    7. Configurar datas do período letivo
+                    8. Visualizar lista de espera das turmas
+                    9. Consultar histórico dos alunos do curso
                     10. Adicionar pré-requisito em disciplina
-                    11. Vincular aluno a um curso (RF39)
-                    12. Relatório de alunos por turma (RF40)
+                    11. Vincular aluno a um curso
+                    12. Relatório de alunos por turma
+                    13. Relatório de ocupação de vagas
+                    14. Relatório de reprovação por disciplina
                     0. Sair
                     """;
             case ADMINISTRADOR ->
@@ -123,7 +127,7 @@ public class UsuarioService {
                     2. Cadastrar cursos
                     3. Configurar períodos letivos
                     4. Manter dados básicos
-                    5. Gerar relatórios gerais
+                    5. Relatório geral de usuários
                     0. Sair
                     """;
         };
@@ -182,6 +186,37 @@ public class UsuarioService {
 
     public boolean emailJaExiste(String email) {
         return email != null && buscarPorEmail(email) != null;
+    }
+
+    /**
+     * RF43 - O administrador deve gerar relatório geral de usuários cadastrados. Conta quantos
+     * usuários existem de cada perfil e o total. Só o administrador pode gerar.
+     */
+    public RelatorioUsuariosDTO relatorioGeralUsuarios(Usuario usuarioLogado) {
+        if (usuarioLogado == null || usuarioLogado.getTipo() != TipoUsuario.ADMINISTRADOR) {
+            throw new AcessoNegadoException(
+                    "Acesso negado: apenas administradores podem gerar este relatório.");
+        }
+
+        int alunos = 0;
+        int professores = 0;
+        int coordenadores = 0;
+        int administradores = 0;
+        for (Usuario u : usuarios) {
+            switch (u.getTipo()) {
+                case ALUNO -> alunos++;
+                case PROFESSOR -> professores++;
+                case COORDENADOR -> coordenadores++;
+                case ADMINISTRADOR -> administradores++;
+            }
+        }
+
+        return new RelatorioUsuariosDTO(
+                alunos,
+                professores,
+                coordenadores,
+                administradores,
+                alunos + professores + coordenadores + administradores);
     }
 
     private void validarCampos(String nome, String matricula, String email, String senha) {
