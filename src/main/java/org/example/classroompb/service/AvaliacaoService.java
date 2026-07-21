@@ -229,6 +229,13 @@ public class AvaliacaoService {
         for (String matricula : matriculas) {
             Avaliacao avaliacao = buscarAvaliacao(codigoTurma, matricula);
             if (avaliacao != null) {
+                // Consolida a situação final no fechamento (RF33). Usa a frequência vigente: os
+                // registros de presença/falta do RF27 quando existirem, senão o percentual
+                // informado à mão. Assim "notas consolidadas" reflete a situação de fato, e a
+                // turma não fica fechada com avaliações ainda EM_ANDAMENTO.
+                double frequencia = frequenciaVigente(avaliacao);
+                avaliacao.setFrequencia(frequencia);
+                avaliacao.setSituacao(calcularSituacao(avaliacao.calcularMedia(), frequencia));
                 avaliacao.fechar();
             }
         }

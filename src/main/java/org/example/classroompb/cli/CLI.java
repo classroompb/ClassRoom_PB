@@ -1360,6 +1360,15 @@ public class CLI {
                     "   Média (RF32): %.2f%n",
                     avaliacaoService.calcularMedia(codigoTurma, matricula));
 
+            // Turma fechada: a situação já foi consolidada no fechamento (RF36) e não pode mais
+            // ser alterada (RF35). Só exibe, sem pedir frequência — pedir aqui tentaria gravar em
+            // turma fechada e derrubava o programa.
+            if (turma.isFechada()) {
+                System.out.printf("   Frequência: %.1f%%%n", avaliacao.getFrequencia());
+                System.out.println("   Situação final (RF33): " + avaliacao.getSituacao());
+                continue;
+            }
+
             System.out.print("   Frequência (%) para definir a situação [Enter para pular]: ");
             String entrada = scanner.nextLine().trim();
             if (entrada.isEmpty()) {
@@ -1373,7 +1382,7 @@ public class CLI {
                 System.out.println("   Situação final (RF33): " + situacao);
             } catch (NumberFormatException e) {
                 System.out.println("   Erro: frequência inválida.");
-            } catch (IllegalArgumentException e) {
+            } catch (IllegalArgumentException | IllegalStateException e) {
                 System.out.println("   Erro: " + e.getMessage());
             }
         }

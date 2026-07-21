@@ -110,14 +110,14 @@ public class UsuarioService {
                     4. Ativar período letivo
                     5. Encerrar período letivo
                     6. Gerenciar turmas (alterar/cancelar)
-                    7. Configurar datas do período letivo (RF22)
-                    8. Visualizar lista de espera das turmas (RF26)
-                    9. Consultar histórico dos alunos do curso (RF39)
+                    7. Configurar datas do período letivo
+                    8. Visualizar lista de espera das turmas
+                    9. Consultar histórico dos alunos do curso
                     10. Adicionar pré-requisito em disciplina
-                    11. Vincular aluno a um curso (RF39)
-                    12. Relatório de alunos por turma (RF40)
-                    13. Relatório de ocupação de vagas (RF41)
-                    14. Relatório de reprovação por disciplina (RF42)
+                    11. Vincular aluno a um curso
+                    12. Relatório de alunos por turma
+                    13. Relatório de ocupação de vagas
+                    14. Relatório de reprovação por disciplina
                     0. Sair
                     """;
             case ADMINISTRADOR ->
@@ -127,7 +127,7 @@ public class UsuarioService {
                     2. Cadastrar cursos
                     3. Configurar períodos letivos
                     4. Manter dados básicos
-                    5. Relatório geral de usuários (RF43)
+                    5. Relatório geral de usuários
                     0. Sair
                     """;
         };
